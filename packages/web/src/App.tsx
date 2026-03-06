@@ -9,20 +9,29 @@ import Sessions from "./pages/Sessions";
 import Transcripts from "./pages/Transcripts";
 import Costs from "./pages/Costs";
 import Ports from "./pages/Ports";
-import { StubPage } from "./pages/StubPage";
-import {
-  MessageSquare, Server,
-  BarChart3, Activity, CalendarDays, GitCompare, Camera,
-  Zap, Users, Brain, Link2,
-  ShieldCheck, Package, GitBranch, Key, FileCode,
-} from "lucide-react";
+import Setup from "./pages/Setup";
+import Assistant from "./pages/Assistant";
+import WorkGraph from "./pages/WorkGraph";
+import RepoPulse from "./pages/RepoPulse";
+import Timeline from "./pages/Timeline";
+import Diffs from "./pages/Diffs";
+import Snapshots from "./pages/Snapshots";
+import Skills from "./pages/Skills";
+import Agents from "./pages/Agents";
+import Memory from "./pages/Memory";
+import Hooks from "./pages/Hooks";
+import Hygiene from "./pages/Hygiene";
+import Dependencies from "./pages/Dependencies";
+import Worktrees from "./pages/Worktrees";
+import Env from "./pages/Env";
+import Lint from "./pages/Lint";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<DashboardLayout />}>
         <Route index element={<Overview />} />
-        <Route path="assistant" element={<StubPage title="Assistant" icon={<MessageSquare size={48} />} description="Built-in AI chatbot. Add an API key to start chatting." />} />
+        <Route path="assistant" element={<Assistant />} />
 
         {/* Monitor */}
         <Route path="live" element={<Live />} />
@@ -30,29 +39,29 @@ export default function App() {
         <Route path="transcripts" element={<Transcripts />} />
         <Route path="tools" element={<Tools />} />
         <Route path="costs" element={<Costs />} />
-        <Route path="setup" element={<StubPage title="Setup" icon={<Server size={48} />} description="MCP servers, hooks, and plugins are configured in agent settings files." count={0} />} />
+        <Route path="setup" element={<Setup />} />
         <Route path="ports" element={<Ports />} />
 
         {/* Workspace */}
         <Route path="repos" element={<Repos />} />
-        <Route path="work-graph" element={<StubPage title="Work Graph" icon={<BarChart3 size={48} />} description="Repository activity visualization." count={0} />} />
-        <Route path="repo-pulse" element={<StubPage title="Repo Pulse" icon={<Activity size={48} />} description="Repository health and activity monitoring." count={0} />} />
-        <Route path="timeline" element={<StubPage title="Git Timeline" icon={<CalendarDays size={48} />} description="Add repo directories in Settings to see git timelines." count={0} />} />
-        <Route path="diffs" element={<StubPage title="Diffs" icon={<GitCompare size={48} />} description="View file changes from Claude Code sessions." count={0} />} />
-        <Route path="snapshots" element={<StubPage title="Snapshots" icon={<Camera size={48} />} description="Save and restore git branch snapshots." count={0} />} />
+        <Route path="work-graph" element={<WorkGraph />} />
+        <Route path="repo-pulse" element={<RepoPulse />} />
+        <Route path="timeline" element={<Timeline />} />
+        <Route path="diffs" element={<Diffs />} />
+        <Route path="snapshots" element={<Snapshots />} />
 
         {/* Config */}
-        <Route path="skills" element={<StubPage title="Skills" icon={<Zap size={48} />} description="Skills live in ~/.claude/skills/ or in each repo's .claude/skills/ folder." count={0} />} />
-        <Route path="agents" element={<StubPage title="Agents" icon={<Users size={48} />} description="Agents live in each repo's .claude/agents/ folder as .md files." count={0} />} />
-        <Route path="memory" element={<StubPage title="Memory" icon={<Brain size={48} />} description="Claude saves memories in MEMORY.md as you work together." count={0} />} />
-        <Route path="hooks" element={<StubPage title="Hooks" icon={<Link2 size={48} />} description='Hooks are defined in ~/.claude/settings.json under the "hooks" key.' count={0} />} />
+        <Route path="skills" element={<Skills />} />
+        <Route path="agents" element={<Agents />} />
+        <Route path="memory" element={<Memory />} />
+        <Route path="hooks" element={<Hooks />} />
 
         {/* Health */}
-        <Route path="hygiene" element={<StubPage title="Hygiene" icon={<ShieldCheck size={48} />} description="System health checks and zombie process detection." />} />
-        <Route path="deps" element={<StubPage title="Dependencies" icon={<Package size={48} />} description="Dependency health checks repos with a package.json." count={0} />} />
-        <Route path="worktrees" element={<StubPage title="Worktrees" icon={<GitBranch size={48} />} description="Only repos with multiple worktrees are shown here." count={0} />} />
-        <Route path="env" element={<StubPage title="Env" icon={<Key size={48} />} description="Detects .env files across your repos." count={0} />} />
-        <Route path="lint" element={<StubPage title="Lint" icon={<FileCode size={48} />} description="Finds CLAUDE.md files in repos or global config." count={0} />} />
+        <Route path="hygiene" element={<Hygiene />} />
+        <Route path="deps" element={<Dependencies />} />
+        <Route path="worktrees" element={<Worktrees />} />
+        <Route path="env" element={<Env />} />
+        <Route path="lint" element={<Lint />} />
 
         <Route path="settings" element={<Settings />} />
       </Route>

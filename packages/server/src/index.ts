@@ -5,6 +5,8 @@ import { repoRoutes } from "./routes/repos.js";
 import { settingsRoutes } from "./routes/settings.js";
 import { sessionRoutes } from "./routes/sessions.js";
 import { configRoutes } from "./routes/config.js";
+import { workspaceRoutes } from "./routes/workspace.js";
+import { healthRoutes } from "./routes/health.js";
 
 const app = Fastify({ logger: true });
 
@@ -16,6 +18,8 @@ await app.register(repoRoutes);
 await app.register(settingsRoutes);
 await app.register(sessionRoutes);
 await app.register(configRoutes);
+await app.register(workspaceRoutes);
+await app.register(healthRoutes);
 
 // Import DB to initialize
 import "./db/index.js";

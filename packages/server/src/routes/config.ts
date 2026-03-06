@@ -64,6 +64,24 @@ export async function configRoutes(app: FastifyInstance) {
     }
   });
 
+  // Setup (MCP servers, hooks, permissions from settings)
+  app.get("/api/setup", async () => {
+    const settingsPath = join(CLAUDE_DIR, "settings.json");
+    if (!existsSync(settingsPath)) {
+      return { mcpServers: {}, hooks: {}, permissions: {} };
+    }
+    try {
+      const data = JSON.parse(readFileSync(settingsPath, "utf-8"));
+      return {
+        mcpServers: data.mcpServers || {},
+        hooks: data.hooks || {},
+        permissions: data.permissions || {},
+      };
+    } catch {
+      return { mcpServers: {}, hooks: {}, permissions: {} };
+    }
+  });
+
   // Ports
   app.get("/api/ports", async () => {
     try {

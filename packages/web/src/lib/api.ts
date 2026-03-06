@@ -16,6 +16,16 @@ async function putJson<T>(path: string, body: unknown): Promise<T> {
   return res.json();
 }
 
+async function postJson<T>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
 export const api = {
   dashboard: () => fetcher<any>("/dashboard"),
   repos: () => fetcher<any>("/repos"),
@@ -38,4 +48,15 @@ export const api = {
   hooks: () => fetcher<any>("/hooks"),
   ports: () => fetcher<any>("/ports"),
   history: () => fetcher<any>("/history"),
+  setup: () => fetcher<any>("/setup"),
+  workGraph: () => fetcher<any>("/work-graph"),
+  timeline: () => fetcher<any>("/timeline"),
+  diffs: () => fetcher<any>("/diffs"),
+  snapshots: () => fetcher<any>("/snapshots"),
+  saveSnapshot: () => postJson<any>("/snapshots/save"),
+  hygiene: () => fetcher<any>("/hygiene"),
+  deps: () => fetcher<any>("/deps"),
+  worktrees: () => fetcher<any>("/worktrees"),
+  envFiles: () => fetcher<any>("/env-files"),
+  lintClaude: () => fetcher<any>("/lint-claude"),
 };

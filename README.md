@@ -4,10 +4,6 @@ Web-based dashboard for [Claude Code](https://docs.anthropic.com/en/docs/claude-
 
 Inspired by [Readout](https://github.com/anthropics/readout) (macOS-only), ShipBox brings the same capabilities to any platform as a local web app.
 
-## Screenshots
-
-> Coming soon
-
 ## Features
 
 **25 pages** across 6 sections:

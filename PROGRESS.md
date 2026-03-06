@@ -136,3 +136,88 @@ All 6 Monitor pages are now fully functional with real data.
 - [x] Activity chart: fixed white cursor to transparent green
 - [x] Recent Sessions: simplified hover style (removed green left border)
 - [x] Sidebar divider: subtle solid line instead of green gradient
+
+---
+
+## Phase 3: Workspace (completed 2026-03-06)
+
+All 5 Workspace pages (beyond Repos) are now fully functional with real data.
+
+### Backend: New Route File
+- [x] `packages/server/src/routes/workspace.ts` - 5 new endpoints
+  - `GET /api/work-graph` - repo activity data with stats (active/idle/dormant/totalCommits)
+  - `GET /api/timeline` - git commit timeline across all repos (last 20 per repo, sorted by date)
+  - `GET /api/diffs` - recent file changes from git diff (HEAD~5..HEAD per repo)
+  - `GET /api/snapshots` - current branch states for all repos
+  - `POST /api/snapshots/save` - save snapshot (git stash dirty repos + metadata to DB)
+- [x] Registered in `packages/server/src/index.ts`
+- [x] Reuses existing `scanDirectories` from git-scanner service
+
+### Frontend: 5 New Pages
+- [x] `packages/web/src/pages/WorkGraph.tsx` - 4 stat cards, repos grouped by status with colored dots
+- [x] `packages/web/src/pages/RepoPulse.tsx` - repo cards sorted by activity, branch/dirty/commits info
+- [x] `packages/web/src/pages/Timeline.tsx` - vertical timeline with colored repo dots, commit details
+- [x] `packages/web/src/pages/Diffs.tsx` - file changes grouped by repo, +additions/-deletions display
+- [x] `packages/web/src/pages/Snapshots.tsx` - branch states list, Save Snapshot button with mutation
+
+### API Client
+- [x] Added `postJson` helper and 5 new methods to `packages/web/src/lib/api.ts`
+
+### App Router
+- [x] Replaced 5 StubPage routes with real components in `packages/web/src/App.tsx`
+
+---
+
+## Phase 4: Config + Health (completed 2026-03-06)
+
+### Backend: Health Routes
+- [x] New route file: `packages/server/src/routes/health.ts`
+- [x] `GET /api/hygiene` - zombie claude process detection, large log files, stale sessions
+- [x] `GET /api/deps` - dependency health (package.json scan, lockfile detection)
+- [x] `GET /api/worktrees` - repos with multiple git worktrees
+- [x] `GET /api/env-files` - .env file scanner across repos
+- [x] `GET /api/lint-claude` - CLAUDE.md file finder (global + per-repo)
+- [x] All endpoints gracefully handle empty scan directories
+
+### Frontend: Config Pages (4 pages)
+- [x] `Skills.tsx` - lists skills with name, source badge (global/repo), path
+- [x] `Agents.tsx` - lists detected agents with name and path
+- [x] `Memory.tsx` - shows each project MEMORY.md content (preformatted)
+- [x] `Hooks.tsx` - hooks grouped by event name with JSON config display
+
+### Frontend: Health Pages (5 pages)
+- [x] `Hygiene.tsx` - stat cards (issues/critical/warnings), severity-colored issue list
+- [x] `Dependencies.tsx` - repos with dep/devDep counts, lockfile status badge
+- [x] `Worktrees.tsx` - multi-worktree repos with path/branch/HEAD per worktree
+- [x] `Env.tsx` - .env files with repo name, path, file size
+- [x] `Lint.tsx` - CLAUDE.md files with project, path, line count, size
+
+### Integration
+- [x] API client updated with 5 new methods (hygiene, deps, worktrees, envFiles, lintClaude)
+- [x] App.tsx: all 9 StubPage routes replaced with real components
+- [x] Removed unused lucide-react imports from App.tsx
+- [x] TypeScript compiles cleanly for both server and web packages
+
+---
+
+## Phase 5: Setup + Assistant (completed 2026-03-06)
+
+### Setup Page
+- [x] Backend API: `GET /api/setup` in config.ts - reads ~/.claude/settings.json
+  - Returns mcpServers, hooks, permissions sections
+- [x] Frontend: `packages/web/src/pages/Setup.tsx`
+  - 3 stat cards: MCP Servers, Hooks, Permissions counts
+  - Sections listing each config entry with glass-card styling
+  - Per-section empty states
+
+### Assistant Page
+- [x] Frontend: `packages/web/src/pages/Assistant.tsx`
+  - Non-functional chat UI shell (visual placeholder for future implementation)
+  - Model selector (disabled), text input (disabled), send button (disabled)
+  - Centered "Start a conversation with Claude" message
+
+### All 25 Pages Complete
+- [x] No StubPage usage remaining - all pages have real implementations
+- [x] All server tests pass (8/8)
+- [x] TypeScript compiles cleanly (server + web)
+- [x] All APIs return real data

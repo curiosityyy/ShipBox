@@ -7,19 +7,23 @@ interface StatCardProps {
 }
 
 const dotColors = {
-  blue: "bg-[#2f81f7]",
-  green: "bg-[#3fb950]",
-  yellow: "bg-[#d29922]",
-  red: "bg-[#f85149]",
+  blue: "bg-[#64748b]",
+  green: "bg-[#34d399] shadow-[0_0_6px_rgba(52,211,153,0.4)]",
+  yellow: "bg-[#fbbf24] shadow-[0_0_6px_rgba(251,191,36,0.4)]",
+  red: "bg-[#f87171] shadow-[0_0_6px_rgba(248,113,113,0.4)]",
 };
 
 export function StatCard({ value, label, color = "blue" }: StatCardProps) {
   return (
-    <div className="bg-[#1c2333] rounded-lg p-5 border border-[#30363d]">
-      <div className="text-2xl font-bold text-[#e6edf3]">{value}</div>
-      <div className="flex items-center gap-1.5 mt-1">
-        <span className={clsx("w-2 h-2 rounded-full", dotColors[color])} />
-        <span className="text-sm text-[#8b949e]">{label}</span>
+    <div className="glass-card glow-top animate-fade-up rounded-xl p-5">
+      <div className="font-display text-3xl font-bold text-[#e2e8f0] tracking-tight">
+        {value}
+      </div>
+      <div className="flex items-center gap-2 mt-2">
+        <span className={clsx("w-1.5 h-1.5 rounded-full", dotColors[color])} />
+        <span className="text-xs uppercase tracking-wider font-medium text-[#64748b]">
+          {label}
+        </span>
       </div>
     </div>
   );

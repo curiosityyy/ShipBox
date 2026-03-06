@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 export default function Overview() {
   const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: api.dashboard });
 
-  if (isLoading) return <div className="text-[#8b949e]">Loading...</div>;
+  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
   if (!data) return null;
 
   const costDisplay = data.stats.estCost < 1
@@ -14,68 +14,102 @@ export default function Overview() {
     : `$${data.stats.estCost.toFixed(2)}`;
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Greeting */}
-      <h1 className="text-3xl font-bold mb-1">
-        {data.greeting}, {data.user}
-      </h1>
-      <p className="text-[#8b949e] mb-6">
-        You have <span className="text-[#e6edf3] font-semibold">{data.stats.repos}</span> repos set up.
-        {data.stats.repos === 0 && " Fresh slate today."}
-      </p>
+      <div className="animate-fade-up">
+        <h1 className="font-display text-4xl font-bold text-[#e2e8f0] mb-2">
+          {data.greeting}, <span className="text-[#34d399]">{data.user}</span>
+        </h1>
+        <p className="text-[#64748b] text-lg">
+          You have <span className="text-[#e2e8f0] font-semibold">{data.stats.repos}</span> repos set up.
+          {data.stats.repos === 0 && " Fresh slate today."}
+        </p>
+      </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <StatCard value={data.stats.repos} label="Repos" color="blue" />
-        <StatCard value={data.stats.commitsToday} label="Commits Today" color="green" />
-        <StatCard value={data.stats.sessions} label="Sessions" color="green" />
-        <StatCard value={costDisplay} label="Est. Cost" color="yellow" />
+      <div className="grid grid-cols-4 gap-4">
+        <div className="animate-fade-up stagger-1">
+          <StatCard value={data.stats.repos} label="Repos" color="blue" />
+        </div>
+        <div className="animate-fade-up stagger-2">
+          <StatCard value={data.stats.commitsToday} label="Commits Today" color="green" />
+        </div>
+        <div className="animate-fade-up stagger-3">
+          <StatCard value={data.stats.sessions} label="Sessions" color="green" />
+        </div>
+        <div className="animate-fade-up stagger-4">
+          <StatCard value={costDisplay} label="Est. Cost" color="yellow" />
+        </div>
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-6">
         {/* Activity chart */}
-        <div className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d]">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm font-semibold">Activity</span>
-            <span className="text-xs text-[#8b949e]">30d</span>
+        <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-5">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="font-display text-sm font-semibold text-[#e2e8f0]">Activity</span>
+            <span className="text-xs text-[#64748b]">30d</span>
           </div>
           {data.dailyCosts && data.dailyCosts.length > 0 ? (
-            <ResponsiveContainer width="100%" height={120}>
+            <ResponsiveContainer width="100%" height={140}>
               <BarChart data={data.dailyCosts}>
                 <XAxis dataKey="date" hide />
                 <YAxis hide />
                 <Tooltip
-                  contentStyle={{ background: "#1c2333", border: "1px solid #30363d", borderRadius: 8 }}
-                  labelStyle={{ color: "#8b949e" }}
+                  contentStyle={{
+                    background: "#151a25",
+                    border: "1px solid #1e293b",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                  }}
+                  labelStyle={{ color: "#64748b" }}
+                  itemStyle={{ color: "#34d399" }}
                   formatter={(v: number) => [`$${v.toFixed(2)}`, "Cost"]}
                 />
-                <Bar dataKey="cost" fill="#2f81f7" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="cost" fill="#34d399" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[120px] flex items-center justify-center text-[#8b949e] text-sm">
+            <div className="h-[140px] flex items-center justify-center text-[#64748b] text-sm">
               No activity data yet
             </div>
           )}
         </div>
 
         {/* Cost by Model */}
-        <div className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d]">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm font-semibold">Cost by Model</span>
+        <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-6">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="font-display text-sm font-semibold text-[#e2e8f0]">Cost by Model</span>
           </div>
           {data.costByModel && Object.keys(data.costByModel).length > 0 ? (
-            <div className="space-y-2">
-              {Object.entries(data.costByModel).map(([model, cost]) => (
-                <div key={model} className="flex items-center justify-between">
-                  <span className="text-sm text-[#8b949e]">{model.replace("claude-", "").replace(/-/g, " ")}</span>
-                  <span className="text-sm font-mono">${(cost as number).toFixed(2)}</span>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {(() => {
+                const entries = Object.entries(data.costByModel);
+                const maxCost = Math.max(...entries.map(([, c]) => c as number));
+                return entries.map(([model, cost]) => {
+                  const pct = maxCost > 0 ? ((cost as number) / maxCost) * 100 : 0;
+                  return (
+                    <div key={model} className="relative flex items-center justify-between py-1.5 px-2 rounded-lg overflow-hidden">
+                      <div
+                        className="absolute inset-0 rounded-lg"
+                        style={{
+                          background: "linear-gradient(90deg, rgba(52,211,153,0.1) 0%, rgba(52,211,153,0.03) 100%)",
+                          width: `${pct}%`,
+                        }}
+                      />
+                      <span className="relative text-sm text-[#e2e8f0]">
+                        {model.replace("claude-", "").replace(/-/g, " ")}
+                      </span>
+                      <span className="relative font-mono text-sm text-[#34d399]">
+                        ${(cost as number).toFixed(2)}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           ) : (
-            <div className="h-[120px] flex items-center justify-center text-[#8b949e] text-sm">
+            <div className="h-[140px] flex items-center justify-center text-[#64748b] text-sm">
               No cost data yet
             </div>
           )}
@@ -83,19 +117,22 @@ export default function Overview() {
       </div>
 
       {/* Recent Sessions */}
-      <div className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d] mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm font-semibold">Recent Sessions</span>
+      <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-7">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="font-display text-sm font-semibold text-[#e2e8f0]">Recent Sessions</span>
         </div>
         {data.recentSessions && data.recentSessions.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-1">
             {data.recentSessions.map((s: any, i: number) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#2f81f7] mt-2 shrink-0" />
+              <div
+                key={i}
+                className="flex items-start gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 hover:bg-[#1c2333] border-l-2 border-transparent hover:border-[#34d399]"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-[#34d399] mt-2 shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-sm truncate">{s.display}</div>
-                  <div className="text-xs text-[#8b949e]">
-                    <span className="text-[#2f81f7]">{s.project?.split("/").pop() || "user"}</span>
+                  <div className="text-sm text-[#e2e8f0] truncate">{s.display}</div>
+                  <div className="text-xs text-[#64748b]">
+                    <span className="text-[#34d399]">{s.project?.split("/").pop() || "user"}</span>
                     {" · "}
                     {formatTimeAgo(s.timestamp)}
                   </div>
@@ -104,18 +141,18 @@ export default function Overview() {
             ))}
           </div>
         ) : (
-          <div className="text-[#8b949e] text-sm py-4 text-center">No recent sessions</div>
+          <div className="text-[#64748b] text-sm py-4 text-center">No recent sessions</div>
         )}
       </div>
 
       {/* Tool Stats */}
       {data.toolStats && (
-        <div className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d]">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm font-semibold">Tool Usage</span>
-            <span className="text-xs text-[#8b949e]">{data.toolStats.totalCalls} calls</span>
+        <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-8">
+          <div className="flex items-center gap-2 mb-5">
+            <span className="font-display text-sm font-semibold text-[#e2e8f0]">Tool Usage</span>
+            <span className="text-xs text-[#64748b]">{data.toolStats.totalCalls} calls</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {Object.entries(data.toolStats.tools)
               .sort(([, a], [, b]) => (b as number) - (a as number))
               .slice(0, 7)
@@ -124,14 +161,17 @@ export default function Overview() {
                 const pct = ((count as number) / max) * 100;
                 return (
                   <div key={tool} className="flex items-center gap-3">
-                    <span className="text-sm text-[#8b949e] w-32 shrink-0">{tool}</span>
-                    <div className="flex-1 h-5 bg-[#0f1117] rounded overflow-hidden">
+                    <span className="font-mono text-xs text-[#64748b] w-32 shrink-0 truncate">{tool}</span>
+                    <div className="flex-1 h-6 bg-[#0f1219] rounded-md overflow-hidden">
                       <div
-                        className="h-full bg-[#2f81f7] rounded"
-                        style={{ width: `${pct}%` }}
+                        className="h-full rounded-md"
+                        style={{
+                          width: `${pct}%`,
+                          background: "linear-gradient(90deg, #34d399, rgba(52,211,153,0.5))",
+                        }}
                       />
                     </div>
-                    <span className="text-sm text-[#8b949e] w-10 text-right">{count as number}</span>
+                    <span className="font-mono text-xs text-[#64748b] w-10 text-right">{count as number}</span>
                   </div>
                 );
               })}

@@ -5,17 +5,27 @@ import { EmptyState } from "../components/EmptyState";
 import { FolderGit2 } from "lucide-react";
 import { clsx } from "clsx";
 
-const statusColors = { active: "bg-[#3fb950]", idle: "bg-[#d29922]", dormant: "bg-[#8b949e]" };
+const statusDot: Record<string, string> = {
+  active: "bg-[#34d399] shadow-[0_0_6px_rgba(52,211,153,0.4)]",
+  idle: "bg-[#fbbf24] shadow-[0_0_6px_rgba(251,191,36,0.4)]",
+  dormant: "bg-[#475569]",
+};
+
+const statusText: Record<string, string> = {
+  active: "text-[#34d399]",
+  idle: "text-[#fbbf24]",
+  dormant: "text-[#475569]",
+};
 
 export default function Repos() {
   const { data, isLoading } = useQuery({ queryKey: ["repos"], queryFn: api.repos });
 
-  if (isLoading) return <div className="text-[#8b949e]">Loading...</div>;
+  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
 
   const repos = data?.repos || [];
 
   return (
-    <div>
+    <div className="animate-fade-up">
       <PageHeader title="Repos" count={repos.length} />
       {repos.length === 0 ? (
         <EmptyState
@@ -24,21 +34,46 @@ export default function Repos() {
           description="ShipBox looks for git repos in your configured scan directories. Add directories in Settings."
         />
       ) : (
-        <div className="space-y-2">
-          {repos.map((repo: any) => (
-            <div key={repo.path} className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d] flex items-center justify-between">
+        <div className="space-y-3">
+          {repos.map((repo: any, index: number) => (
+            <div
+              key={repo.path}
+              className={`glass-card animate-fade-up stagger-${Math.min(index + 1, 8)} rounded-xl px-5 py-4 flex items-center justify-between transition-colors duration-200 hover:border-[#34d399]/30`}
+            >
               <div>
-                <div className="flex items-center gap-2">
-                  <FolderGit2 size={16} className="text-[#8b949e]" />
-                  <span className="font-semibold">{repo.name}</span>
-                  <span className="text-xs text-[#8b949e] font-mono">({repo.branch})</span>
-                  {repo.dirty && <span className="text-xs px-1.5 py-0.5 bg-[#d29922]/20 text-[#d29922] rounded">dirty</span>}
+                <div className="flex items-center gap-2.5">
+                  <FolderGit2 size={15} className="text-[#64748b]" />
+                  <span className="font-display font-semibold text-base text-[#e2e8f0]">
+                    {repo.name}
+                  </span>
+                  <span className="font-mono text-xs text-[#64748b]">
+                    ({repo.branch})
+                  </span>
+                  {repo.dirty && (
+                    <span className="font-mono text-[10px] uppercase tracking-wider rounded-md px-2 py-0.5 bg-[rgba(251,191,36,0.15)] text-[#fbbf24]">
+                      dirty
+                    </span>
+                  )}
                 </div>
-                <div className="text-xs text-[#8b949e] mt-1 font-mono">{repo.path}</div>
+                <div className="font-mono text-xs text-[#475569] mt-1.5 ml-[27px]">
+                  {repo.path}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={clsx("w-2 h-2 rounded-full", statusColors[repo.status as keyof typeof statusColors])} />
-                <span className="text-sm text-[#8b949e] capitalize">{repo.status}</span>
+              <div className="flex items-center gap-2.5">
+                <span
+                  className={clsx(
+                    "w-2 h-2 rounded-full",
+                    statusDot[repo.status as string] || statusDot.dormant
+                  )}
+                />
+                <span
+                  className={clsx(
+                    "font-mono text-xs uppercase",
+                    statusText[repo.status as string] || statusText.dormant
+                  )}
+                >
+                  {repo.status}
+                </span>
               </div>
             </div>
           ))}

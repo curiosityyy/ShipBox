@@ -12,79 +12,85 @@ export default function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  if (isLoading) return <div className="text-[#8b949e]">Loading...</div>;
+  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
 
   const scanDirs: string[] = data?.scan_directories || [];
 
   return (
-    <div>
+    <div className="animate-fade-up">
       <PageHeader title="Settings" />
 
       {/* Rescan */}
-      <div className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d] mb-6 flex items-center justify-between">
-        <span className="text-sm">Rescan Workspace</span>
+      <div className="glass-card animate-fade-up stagger-1 rounded-xl px-5 py-4 mb-8 flex items-center justify-between">
+        <span className="font-display text-sm text-[#e2e8f0]">Rescan Workspace</span>
         <button
           onClick={() => queryClient.invalidateQueries()}
-          className="text-sm text-[#8b949e] hover:text-[#e6edf3] transition-colors"
+          className="text-sm font-medium text-[#34d399] transition-all duration-200 hover:brightness-125 hover:shadow-[0_0_12px_rgba(52,211,153,0.15)]"
         >
           Refresh all data
         </button>
       </div>
 
       {/* Scan Directories */}
-      <Section title="Scan Directories">
-        <div className="space-y-2">
-          {scanDirs.map((dir, i) => (
-            <div key={i} className="flex items-center justify-between bg-[#0f1117] rounded-md px-3 py-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">📁</span>
-                <span className="text-sm font-mono">{dir}</span>
-              </div>
-              <button
-                onClick={() => {
-                  const newDirs = scanDirs.filter((_, j) => j !== i);
-                  updateSetting.mutate({ key: "scan_directories", value: newDirs });
-                }}
-                className="text-xs text-[#f85149] hover:text-[#ff7b72]"
+      <div className="mb-8 animate-fade-up stagger-2">
+        <h2 className="font-display text-xs uppercase tracking-[0.2em] text-[#64748b] mb-3">
+          Scan Directories
+        </h2>
+        <div className="glass-card rounded-xl p-5">
+          <div className="space-y-2">
+            {scanDirs.map((dir, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-[#0f1219] rounded-lg px-4 py-3"
               >
-                Remove
-              </button>
-            </div>
-          ))}
+                <div className="flex items-center gap-3">
+                  <span className="w-3 h-3 rounded-sm bg-[#34d399]/30" />
+                  <span className="font-mono text-sm text-[#e2e8f0]">{dir}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    const newDirs = scanDirs.filter((_, j) => j !== i);
+                    updateSetting.mutate({ key: "scan_directories", value: newDirs });
+                  }}
+                  className="text-xs text-[#f87171] hover:opacity-70 transition-opacity font-mono"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+          <AddDirectoryButton
+            onAdd={(dir) => {
+              updateSetting.mutate({ key: "scan_directories", value: [...scanDirs, dir] });
+            }}
+          />
+          <p className="text-xs text-[#475569] mt-3 font-mono">
+            Scans up to 2 levels deep for git repos.
+          </p>
         </div>
-        <AddDirectoryButton
-          onAdd={(dir) => {
-            updateSetting.mutate({ key: "scan_directories", value: [...scanDirs, dir] });
-          }}
-        />
-        <p className="text-xs text-[#8b949e] mt-2">Scans up to 2 levels deep for git repos.</p>
-      </Section>
+      </div>
 
       {/* General */}
-      <Section title="General">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm">Server Port</span>
-            <span className="text-sm font-mono text-[#8b949e]">3141</span>
+      <div className="mb-8 animate-fade-up stagger-3">
+        <h2 className="font-display text-xs uppercase tracking-[0.2em] text-[#64748b] mb-3">
+          General
+        </h2>
+        <div className="glass-card rounded-xl p-5">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between bg-[#0f1219] rounded-lg px-4 py-3">
+              <span className="text-sm text-[#e2e8f0]">Server Port</span>
+              <span className="font-mono text-sm text-[#64748b]">3141</span>
+            </div>
           </div>
         </div>
-      </Section>
+      </div>
 
       {/* Footer */}
-      <div className="mt-8 text-center text-xs text-[#8b949e]">
-        ShipBox v0.1.0 · A web-based Claude Code dashboard
+      <div className="mt-12 text-center animate-fade-up stagger-4">
+        <span className="font-mono text-[10px] text-[#475569] tracking-wider uppercase">
+          ShipBox v0.1.0 -- A web-based Claude Code dashboard
+        </span>
       </div>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-6">
-      <h2 className="text-sm font-semibold text-[#8b949e] mb-3 flex items-center gap-2">
-        {title}
-      </h2>
-      <div className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d]">{children}</div>
     </div>
   );
 }
@@ -97,7 +103,7 @@ function AddDirectoryButton({ onAdd }: { onAdd: (dir: string) => void }) {
     return (
       <button
         onClick={() => setAdding(true)}
-        className="mt-2 text-sm text-[#2f81f7] hover:text-[#58a6ff]"
+        className="mt-3 text-sm text-[#34d399] font-medium hover:underline transition-all"
       >
         + Add Directory
       </button>
@@ -105,7 +111,7 @@ function AddDirectoryButton({ onAdd }: { onAdd: (dir: string) => void }) {
   }
 
   return (
-    <div className="mt-2 flex gap-2">
+    <div className="mt-3 flex gap-2">
       <input
         autoFocus
         value={value}
@@ -119,7 +125,7 @@ function AddDirectoryButton({ onAdd }: { onAdd: (dir: string) => void }) {
           if (e.key === "Escape") setAdding(false);
         }}
         placeholder="/path/to/directory"
-        className="flex-1 bg-[#0f1117] border border-[#30363d] rounded-md px-3 py-1.5 text-sm outline-none focus:border-[#2f81f7]"
+        className="flex-1 bg-[#0f1219] border border-[#1e293b] rounded-lg px-3 py-2 text-sm font-mono text-[#e2e8f0] outline-none transition-colors duration-200 focus:border-[#34d399] placeholder:text-[#475569]"
       />
       <button
         onClick={() => {
@@ -129,7 +135,7 @@ function AddDirectoryButton({ onAdd }: { onAdd: (dir: string) => void }) {
           }
           setAdding(false);
         }}
-        className="text-sm px-3 py-1.5 bg-[#2f81f7] rounded-md hover:bg-[#388bfd]"
+        className="text-sm px-4 py-2 bg-[#34d399] text-[#08090d] font-semibold rounded-lg hover:brightness-110 transition-all"
       >
         Add
       </button>

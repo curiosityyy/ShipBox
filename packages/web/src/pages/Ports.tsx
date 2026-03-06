@@ -8,39 +8,60 @@ import { Cable } from "lucide-react";
 export default function Ports() {
   const { data, isLoading } = useQuery({ queryKey: ["ports"], queryFn: api.ports });
 
-  if (isLoading) return <div className="text-[#8b949e]">Loading...</div>;
+  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
 
   const ports = data?.ports || [];
-  const processes = [...new Set(ports.map((p: any) => p.process))];
+  const processes = [...new Set(ports.map((p: any) => p.process))] as string[];
 
   return (
-    <div>
+    <div className="animate-fade-up">
       <PageHeader title="Ports" count={ports.length} />
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <StatCard value={ports.length} label="Ports" color="blue" />
-        <StatCard value={processes.length} label="Processes" color="green" />
-        <StatCard value={ports.filter((p: any) => p.process === "node").length} label="Node" color="green" />
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="stagger-1">
+          <StatCard value={ports.length} label="Ports" color="blue" />
+        </div>
+        <div className="stagger-2">
+          <StatCard value={processes.length} label="Processes" color="green" />
+        </div>
+        <div className="stagger-3">
+          <StatCard
+            value={ports.filter((p: any) => p.process === "node").length}
+            label="Node"
+            color="green"
+          />
+        </div>
       </div>
 
       {ports.length === 0 ? (
-        <EmptyState icon={<Cable size={48} />} title="No open ports" description="No listening ports detected." />
+        <EmptyState
+          icon={<Cable size={48} />}
+          title="No open ports"
+          description="No listening ports detected."
+        />
       ) : (
-        <div className="space-y-2">
-          {/* Group by process */}
-          {processes.map((proc: string) => {
+        <div className="space-y-3">
+          {processes.map((proc: string, index: number) => {
             const procPorts = ports.filter((p: any) => p.process === proc);
             return (
-              <div key={proc} className="bg-[#1c2333] rounded-lg p-4 border border-[#30363d]">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-mono text-sm font-semibold">{proc}</span>
-                  <span className="text-xs text-[#8b949e]">PID {procPorts[0]?.pid}</span>
+              <div
+                key={proc}
+                className={`glass-card animate-fade-up stagger-${Math.min(index + 4, 8)} rounded-xl px-5 py-4`}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <Cable size={14} className="text-[#64748b]" />
+                  <span className="font-mono text-sm font-semibold text-[#e2e8f0]">
+                    {proc}
+                  </span>
+                  <span className="font-mono text-[10px] text-[#475569] bg-[#151a25] rounded-md px-1.5 py-0.5">
+                    PID {procPorts[0]?.pid}
+                  </span>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5 ml-[27px]">
                   {procPorts.map((p: any) => (
-                    <div key={p.port} className="flex items-center gap-2 text-sm">
-                      <span className="text-[#2f81f7] font-mono">:{p.port}</span>
-                      <span className="text-[#8b949e]">127.0.0.1</span>
+                    <div key={p.port} className="flex items-center gap-3 text-sm">
+                      <span className="font-mono text-[#34d399]">:{p.port}</span>
+                      <span className="text-[#475569] font-mono text-xs">127.0.0.1</span>
                     </div>
                   ))}
                 </div>

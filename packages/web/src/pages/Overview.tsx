@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { StatCard } from "../components/StatCard";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart3, DollarSign, Clock, Wrench } from "lucide-react";
 
 export default function Overview() {
   const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: api.dashboard });
@@ -47,7 +48,8 @@ export default function Overview() {
         {/* Activity chart */}
         <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-5">
           <div className="flex items-center gap-2 mb-5">
-            <span className="font-display text-sm font-semibold text-[#e2e8f0]">Activity</span>
+            <BarChart3 size={14} className="text-[#34d399]" />
+            <span className="text-sm font-semibold text-[#e2e8f0]">Activity</span>
             <span className="text-xs text-[#64748b]">30d</span>
           </div>
           {data.dailyCosts && data.dailyCosts.length > 0 ? (
@@ -64,6 +66,7 @@ export default function Overview() {
                   }}
                   labelStyle={{ color: "#64748b" }}
                   itemStyle={{ color: "#34d399" }}
+                  cursor={{ fill: "rgba(52, 211, 153, 0.08)" }}
                   formatter={(v: number) => [`$${v.toFixed(2)}`, "Cost"]}
                 />
                 <Bar dataKey="cost" fill="#34d399" radius={[3, 3, 0, 0]} />
@@ -79,7 +82,8 @@ export default function Overview() {
         {/* Cost by Model */}
         <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-6">
           <div className="flex items-center gap-2 mb-5">
-            <span className="font-display text-sm font-semibold text-[#e2e8f0]">Cost by Model</span>
+            <DollarSign size={14} className="text-[#fbbf24]" />
+            <span className="text-sm font-semibold text-[#e2e8f0]">Cost by Model</span>
           </div>
           {data.costByModel && Object.keys(data.costByModel).length > 0 ? (
             <div className="space-y-3">
@@ -119,14 +123,15 @@ export default function Overview() {
       {/* Recent Sessions */}
       <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-7">
         <div className="flex items-center gap-2 mb-5">
-          <span className="font-display text-sm font-semibold text-[#e2e8f0]">Recent Sessions</span>
+          <Clock size={14} className="text-[#60a5fa]" />
+          <span className="text-sm font-semibold text-[#e2e8f0]">Recent Sessions</span>
         </div>
         {data.recentSessions && data.recentSessions.length > 0 ? (
           <div className="space-y-1">
             {data.recentSessions.map((s: any, i: number) => (
               <div
                 key={i}
-                className="flex items-start gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 hover:bg-[#1c2333] border-l-2 border-transparent hover:border-[#34d399]"
+                className="flex items-start gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 hover:bg-[#1c2333]/60"
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-[#34d399] mt-2 shrink-0" />
                 <div className="min-w-0">
@@ -149,7 +154,8 @@ export default function Overview() {
       {data.toolStats && (
         <div className="glass-card rounded-2xl p-5 animate-fade-up stagger-8">
           <div className="flex items-center gap-2 mb-5">
-            <span className="font-display text-sm font-semibold text-[#e2e8f0]">Tool Usage</span>
+            <Wrench size={14} className="text-[#c084fc]" />
+            <span className="text-sm font-semibold text-[#e2e8f0]">Tool Usage</span>
             <span className="text-xs text-[#64748b]">{data.toolStats.totalCalls} calls</span>
           </div>
           <div className="space-y-3">

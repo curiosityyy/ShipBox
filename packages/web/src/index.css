@@ -20,9 +20,10 @@
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
   background: var(--bg-base);
   color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Noise texture overlay */
@@ -60,10 +61,10 @@ body::before {
 
 /* Typography classes */
 .font-display {
-  font-family: 'Syne', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
 }
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', monospace;
 }
 
 /* Animations */

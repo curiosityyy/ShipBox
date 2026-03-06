@@ -7,6 +7,7 @@ import {
   getHistory,
   getToolCache,
   getCostCache,
+  searchTranscripts,
 } from "../services/claude-data.js";
 
 export async function sessionRoutes(app: FastifyInstance) {
@@ -35,6 +36,12 @@ export async function sessionRoutes(app: FastifyInstance) {
 
   app.get("/api/history", async () => {
     return { history: getHistory() };
+  });
+
+  app.get("/api/transcripts", async (req) => {
+    const { q, time } = (req.query || {}) as { q?: string; time?: string };
+    const results = searchTranscripts(q || undefined, time || undefined);
+    return { transcripts: results, total: results.length };
   });
 
   app.get("/api/tools", async () => {

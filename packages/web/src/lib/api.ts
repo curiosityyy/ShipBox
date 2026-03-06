@@ -25,6 +25,13 @@ export const api = {
   live: () => fetcher<any>("/live"),
   tools: () => fetcher<any>("/tools"),
   costs: () => fetcher<any>("/costs"),
+  transcripts: (q?: string, time?: string) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (time) params.set("time", time);
+    const qs = params.toString();
+    return fetcher<any>(`/transcripts${qs ? `?${qs}` : ""}`);
+  },
   skills: () => fetcher<any>("/skills"),
   agents: () => fetcher<any>("/agents"),
   memory: () => fetcher<any>("/memory"),

@@ -258,6 +258,115 @@ export function getDashboardData() {
   };
 }
 
+export interface TranscriptMessage {
+  role: "user" | "assistant";
+  text: string;
+  timestamp: number;
+  model?: string;
+  toolUse?: string[];
+}
+
+export interface TranscriptResult {
+  sessionId: string;
+  projectPath: string;
+  messages: TranscriptMessage[];
+  startedAt: number;
+}
+
+export function searchTranscripts(query?: string, timeFilter?: string): TranscriptResult[] {
+  const projects = listProjects();
+  const results: TranscriptResult[] = [];
+  const lowerQuery = query?.toLowerCase();
+
+  // Time filter cutoff
+  let cutoff = 0;
+  if (timeFilter === "today") {
+    const now = new Date();
+    cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  } else if (timeFilter === "week") {
+    cutoff = Date.now() - 7 * 86400000;
+  } else if (timeFilter === "month") {
+    cutoff = Date.now() - 30 * 86400000;
+  }
+
+  for (const proj of projects) {
+    const sessionIds = listSessionFiles(proj);
+    for (const sid of sessionIds) {
+      const filePath = join(PROJECTS_DIR, proj, `${sid}.jsonl`);
+      if (!existsSync(filePath)) continue;
+
+      try {
+        const content = readFileSync(filePath, "utf-8");
+        const lines = content.trim().split("\n");
+        const messages: TranscriptMessage[] = [];
+        let firstTimestamp = 0;
+        let matchesQuery = !lowerQuery;
+
+        for (const line of lines) {
+          try {
+            const entry = JSON.parse(line);
+            const ts = entry.timestamp ? new Date(entry.timestamp).getTime() : 0;
+            if (ts && !firstTimestamp) firstTimestamp = ts;
+
+            if (entry.type === "user" && entry.message?.content) {
+              let text = "";
+              if (typeof entry.message.content === "string") {
+                text = entry.message.content;
+              } else if (Array.isArray(entry.message.content)) {
+                text = entry.message.content
+                  .filter((b: any) => b.type === "text")
+                  .map((b: any) => b.text)
+                  .join("\n");
+              }
+              if (text) {
+                messages.push({ role: "user", text: text.slice(0, 500), timestamp: ts });
+                if (lowerQuery && text.toLowerCase().includes(lowerQuery)) matchesQuery = true;
+              }
+            }
+
+            if (entry.type === "assistant" && entry.message?.content) {
+              let text = "";
+              const toolUse: string[] = [];
+              if (Array.isArray(entry.message.content)) {
+                for (const block of entry.message.content) {
+                  if (block.type === "text") text += block.text;
+                  if (block.type === "tool_use") toolUse.push(block.name);
+                }
+              } else if (typeof entry.message.content === "string") {
+                text = entry.message.content;
+              }
+              if (text || toolUse.length > 0) {
+                messages.push({
+                  role: "assistant",
+                  text: text.slice(0, 500),
+                  timestamp: ts,
+                  model: entry.message.model,
+                  toolUse: toolUse.length > 0 ? toolUse : undefined,
+                });
+                if (lowerQuery && text.toLowerCase().includes(lowerQuery)) matchesQuery = true;
+              }
+            }
+          } catch { /* skip malformed */ }
+        }
+
+        if (cutoff && firstTimestamp && firstTimestamp < cutoff) continue;
+        if (!matchesQuery) continue;
+        if (messages.length === 0) continue;
+
+        results.push({
+          sessionId: sid,
+          projectPath: proj.replace(/-/g, "/"),
+          messages,
+          startedAt: firstTimestamp,
+        });
+      } catch { /* skip */ }
+    }
+  }
+
+  results.sort((a, b) => b.startedAt - a.startedAt);
+  return results;
+}
+
 export function getActiveSessionIds(): string[] {
   // Check session-env directory for active sessions
   const sessionEnvDir = join(CLAUDE_DIR, "session-env");

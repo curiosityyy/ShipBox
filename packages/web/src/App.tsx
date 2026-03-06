@@ -5,10 +5,13 @@ import Settings from "./pages/Settings";
 import Tools from "./pages/Tools";
 import Repos from "./pages/Repos";
 import Live from "./pages/Live";
+import Sessions from "./pages/Sessions";
+import Transcripts from "./pages/Transcripts";
+import Costs from "./pages/Costs";
 import Ports from "./pages/Ports";
 import { StubPage } from "./pages/StubPage";
 import {
-  MessageSquare, Clock, FileText, DollarSign, Server,
+  MessageSquare, Server,
   BarChart3, Activity, CalendarDays, GitCompare, Camera,
   Zap, Users, Brain, Link2,
   ShieldCheck, Package, GitBranch, Key, FileCode,
@@ -23,10 +26,10 @@ export default function App() {
 
         {/* Monitor */}
         <Route path="live" element={<Live />} />
-        <Route path="sessions" element={<StubPage title="Sessions" icon={<Clock size={48} />} description="Session data is collected from agent history and usage logs." count={0} />} />
-        <Route path="transcripts" element={<StubPage title="Transcripts" icon={<FileText size={48} />} description="Search across all your session transcripts." count={0} />} />
+        <Route path="sessions" element={<Sessions />} />
+        <Route path="transcripts" element={<Transcripts />} />
         <Route path="tools" element={<Tools />} />
-        <Route path="costs" element={<StubPage title="Costs" icon={<DollarSign size={48} />} description="Cost tracking and model usage breakdown." count={0} />} />
+        <Route path="costs" element={<Costs />} />
         <Route path="setup" element={<StubPage title="Setup" icon={<Server size={48} />} description="MCP servers, hooks, and plugins are configured in agent settings files." count={0} />} />
         <Route path="ports" element={<Ports />} />
 

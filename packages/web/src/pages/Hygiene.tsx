@@ -66,7 +66,7 @@ export default function Hygiene() {
               >
                 <div className="flex items-center gap-3">
                   <span className={clsx("w-2 h-2 rounded-full shrink-0", colors.dot)} />
-                  <span className="font-display font-semibold text-sm text-[#e2e8f0]">
+                  <span className="font-semibold text-sm text-[#e2e8f0]">
                     {issue.message}
                   </span>
                   <span className={clsx("font-mono text-[10px] uppercase tracking-wider rounded-md px-2 py-0.5", colors.bg, colors.text)}>

@@ -221,3 +221,35 @@ All 5 Workspace pages (beyond Repos) are now fully functional with real data.
 - [x] All server tests pass (8/8)
 - [x] TypeScript compiles cleanly (server + web)
 - [x] All APIs return real data
+
+---
+
+## UI Polish: Readout Parity (2026-03-06)
+
+Compared ShipBox against Readout screenshots and made targeted improvements.
+
+### Sessions Page
+- [x] Sessions are now clickable/expandable to show transcript replay
+- [x] Each session shows "Claude Code" badge, user badge, model, tool count, cost
+- [x] Clicking a session expands it inline with full message history (user/assistant avatars)
+
+### Diffs Page
+- [x] Redesigned to match Readout's session-based format
+- [x] Grouped by date (Today/Yesterday/etc.)
+- [x] Session cards with "Claude Code" badge, "Users/byli" badge, file count, edit count (yellow), time ago
+- [x] "Replay" button with play icon and chevron (expands to show file list with +/- counts)
+- [x] 2-column stat cards (Sessions, Files Changed) matching Readout layout
+
+### Tools Page
+- [x] Added "Usage Over Time" bar chart (blue, matching Readout)
+- [x] Added "Busiest" callout with flame icon below chart
+- [x] Added icons before all section titles (BarChart3, Repeat, FileEdit, Terminal)
+- [x] Backend: normalized daily tool data from dict to array format
+- [x] Tool labels now use white text (#e2e8f0) instead of gray for better readability
+
+### Overview Page (previously done)
+- [x] Centered compact StatCards matching Readout
+- [x] Simplified PageHeader (no gradient line)
+- [x] Clickable cards with chevron arrows (Activity, Cost by Model, Recent Sessions)
+- [x] Hygiene warning banner (yellow)
+- [x] Quick-access cards (Skills, Agents, Memory, Repos)

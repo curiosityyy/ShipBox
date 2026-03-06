@@ -68,7 +68,7 @@ export default function WorkGraph() {
             if (group.length === 0) return null;
             return (
               <section key={status} className="glass-card rounded-2xl p-5 animate-fade-up stagger-5">
-                <h2 className="font-display text-sm font-semibold text-[#e2e8f0] mb-4 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-[#e2e8f0] mb-4 flex items-center gap-2">
                   <span className={clsx("w-2 h-2 rounded-full", statusDot[status])} />
                   <span className="capitalize">{status}</span>
                   <span className="text-[#64748b] font-normal">{group.length} repos</span>
@@ -80,7 +80,7 @@ export default function WorkGraph() {
                       className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-[#1c2333] transition-colors duration-200"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="font-display font-semibold text-sm text-[#e2e8f0]">
+                        <span className="font-semibold text-sm text-[#e2e8f0]">
                           {repo.name}
                         </span>
                         <span className="font-mono text-xs text-[#64748b]">({repo.branch})</span>

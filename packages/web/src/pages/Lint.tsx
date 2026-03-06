@@ -36,7 +36,7 @@ export default function Lint() {
               <div>
                 <div className="flex items-center gap-3">
                   <FileCode size={14} className="text-[#64748b]" />
-                  <span className="font-display font-semibold text-sm text-[#e2e8f0]">
+                  <span className="font-semibold text-sm text-[#e2e8f0]">
                     {file.project}
                   </span>
                 </div>

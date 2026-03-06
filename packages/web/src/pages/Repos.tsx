@@ -43,7 +43,7 @@ export default function Repos() {
               <div>
                 <div className="flex items-center gap-2.5">
                   <FolderGit2 size={15} className="text-[#64748b]" />
-                  <span className="font-display font-semibold text-base text-[#e2e8f0]">
+                  <span className="font-semibold text-base text-[#e2e8f0]">
                     {repo.name}
                   </span>
                   <span className="font-mono text-xs text-[#64748b]">

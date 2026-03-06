@@ -29,7 +29,7 @@ export default function Skills() {
             >
               <div className="flex items-center gap-3">
                 <Zap size={14} className="text-[#64748b]" />
-                <span className="font-display font-semibold text-sm text-[#e2e8f0]">
+                <span className="font-semibold text-sm text-[#e2e8f0]">
                   {skill.name}
                 </span>
                 <span className="font-mono text-[10px] uppercase tracking-wider rounded-md px-2 py-0.5 bg-[rgba(52,211,153,0.15)] text-[#34d399]">

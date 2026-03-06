@@ -79,7 +79,7 @@ export default function Snapshots() {
               <div>
                 <div className="flex items-center gap-2.5">
                   <GitBranch size={14} className="text-[#64748b]" />
-                  <span className="font-display font-semibold text-base text-[#e2e8f0]">
+                  <span className="font-semibold text-base text-[#e2e8f0]">
                     {snap.repo}
                   </span>
                   <span className="font-mono text-xs text-[#64748b]">({snap.branch})</span>

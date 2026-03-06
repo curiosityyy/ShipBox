@@ -13,7 +13,7 @@ export default function Assistant() {
             <div className="stagger-1 w-16 h-16 rounded-full glass-card border border-[#34d399]/15 flex items-center justify-center mb-5 mx-auto shadow-[0_0_20px_rgba(52,211,153,0.06)]">
               <MessageSquare size={24} className="text-[#64748b]" />
             </div>
-            <h3 className="stagger-2 font-display text-lg font-semibold text-[#e2e8f0] mb-2">
+            <h3 className="stagger-2 text-lg font-semibold text-[#e2e8f0] mb-2">
               Start a conversation with Claude
             </h3>
             <p className="stagger-3 text-sm text-[#64748b] max-w-sm leading-relaxed">

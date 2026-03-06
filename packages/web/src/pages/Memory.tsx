@@ -29,7 +29,7 @@ export default function Memory() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <Brain size={14} className="text-[#64748b]" />
-                <span className="font-display font-semibold text-sm text-[#e2e8f0]">
+                <span className="font-semibold text-sm text-[#e2e8f0]">
                   {mem.project}
                 </span>
               </div>

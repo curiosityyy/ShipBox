@@ -22,7 +22,7 @@ export default function SettingsPage() {
 
       {/* Rescan */}
       <div className="glass-card animate-fade-up stagger-1 rounded-xl px-5 py-4 mb-8 flex items-center justify-between">
-        <span className="font-display text-sm text-[#e2e8f0]">Rescan Workspace</span>
+        <span className="text-sm text-[#e2e8f0]">Rescan Workspace</span>
         <button
           onClick={() => queryClient.invalidateQueries()}
           className="text-sm font-medium text-[#34d399] transition-all duration-200 hover:brightness-125 hover:shadow-[0_0_12px_rgba(52,211,153,0.15)]"
@@ -33,7 +33,7 @@ export default function SettingsPage() {
 
       {/* Scan Directories */}
       <div className="mb-8 animate-fade-up stagger-2">
-        <h2 className="font-display text-xs uppercase tracking-[0.2em] text-[#64748b] mb-3">
+        <h2 className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-3">
           Scan Directories
         </h2>
         <div className="glass-card rounded-xl p-5">
@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
       {/* General */}
       <div className="mb-8 animate-fade-up stagger-3">
-        <h2 className="font-display text-xs uppercase tracking-[0.2em] text-[#64748b] mb-3">
+        <h2 className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-3">
           General
         </h2>
         <div className="glass-card rounded-xl p-5">

@@ -79,7 +79,7 @@ export default function RepoPulse() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2.5">
                   <span className={clsx("w-2 h-2 rounded-full", statusDot[repo.status as string])} />
-                  <span className="font-display font-semibold text-base text-[#e2e8f0]">
+                  <span className="font-semibold text-base text-[#e2e8f0]">
                     {repo.name}
                   </span>
                 </div>

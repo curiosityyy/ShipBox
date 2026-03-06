@@ -30,7 +30,7 @@ export default function Hooks() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <Link2 size={14} className="text-[#64748b]" />
-                <span className="font-display font-semibold text-sm text-[#e2e8f0]">
+                <span className="font-semibold text-sm text-[#e2e8f0]">
                   {event}
                 </span>
                 <span className="font-mono text-[10px] text-[#475569] bg-[#151a25] rounded-md px-1.5 py-0.5">

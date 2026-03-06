@@ -15,13 +15,13 @@ const dotColors = {
 
 export function StatCard({ value, label, color = "blue" }: StatCardProps) {
   return (
-    <div className="glass-card glow-top animate-fade-up rounded-xl p-5">
-      <div className="font-display text-3xl font-bold text-[#e2e8f0] tracking-tight">
+    <div className="glass-card rounded-xl px-4 py-4 text-center">
+      <div className="text-2xl font-semibold text-[#e2e8f0] tracking-tight">
         {value}
       </div>
-      <div className="flex items-center gap-2 mt-2">
+      <div className="flex items-center justify-center gap-1.5 mt-1.5">
         <span className={clsx("w-1.5 h-1.5 rounded-full", dotColors[color])} />
-        <span className="text-xs uppercase tracking-wider font-medium text-[#64748b]">
+        <span className="text-[11px] text-[#64748b]">
           {label}
         </span>
       </div>

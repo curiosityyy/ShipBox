@@ -46,8 +46,15 @@ export async function sessionRoutes(app: FastifyInstance) {
 
   app.get("/api/tools", async () => {
     const toolCache = getToolCache();
-    if (!toolCache) return { tools: {}, chains: {}, commands: {}, totalCalls: 0 };
-    return toolCache;
+    if (!toolCache) return { tools: {}, chains: {}, commands: {}, totalCalls: 0, daily: [] };
+    // Normalize daily from { "2026-03-06": 140 } to [{ date: "2026-03-06", count: 140 }]
+    const rawDaily = (toolCache as any).daily;
+    const daily = rawDaily && typeof rawDaily === "object" && !Array.isArray(rawDaily)
+      ? Object.entries(rawDaily)
+          .map(([date, count]) => ({ date, count: count as number }))
+          .sort((a, b) => a.date.localeCompare(b.date))
+      : Array.isArray(rawDaily) ? rawDaily : [];
+    return { ...toolCache, daily };
   });
 
   app.get("/api/costs", async () => {

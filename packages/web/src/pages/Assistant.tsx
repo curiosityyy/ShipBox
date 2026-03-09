@@ -1,15 +1,29 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import {
   Send, ChevronDown, ChevronRight, User, Bot, Loader2,
   Terminal, FileText, Search, Pencil, FolderOpen, Plus,
   Sparkles, Copy, Check, Eye, Globe, Wrench, Zap,
-  Hash, Code2, CircleDot, StopCircle,
+  Hash, Code2, CircleDot, StopCircle, Trash2, MessageSquare,
+  PanelLeftClose, PanelLeft,
 } from "lucide-react";
 
 /* ─── Types ─────────────────────────────────────────────── */
+
+interface AssistantSession {
+  id: string;
+  title: string | null;
+  model: string | null;
+  cwd: string | null;
+  createdAt: number | null;
+  updatedAt: number | null;
+  lastMessage: string | null;
+  messageCount: number | null;
+  totalCostUsd: number | null;
+}
 
 interface ToolUseItem {
   id?: string;
@@ -75,19 +89,40 @@ const TOOL_COLORS: Record<string, string> = {
   WebFetch: "#fb923c",
 };
 
+/* ─── localStorage key ──────────────────────────────────── */
+const LS_ACTIVE_SESSION = "shipbox_assistant_active_session";
+
 /* ─── Main Component ────────────────────────────────────── */
 
 export default function Assistant() {
+  const queryClient = useQueryClient();
+
+  // Session list from DB
+  const { data: sessionData, refetch: refetchSessions } = useQuery({
+    queryKey: ["assistant-sessions"],
+    queryFn: api.assistantSessions,
+    refetchInterval: 10000,
+  });
+  const sessionList: AssistantSession[] = sessionData?.sessions || [];
+
+  // Active session + messages per session (in-memory map)
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(() =>
+    localStorage.getItem(LS_ACTIVE_SESSION),
+  );
+  const messagesMapRef = useRef<Map<string, ChatMessage[]>>(new Map());
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [showPanel, setShowPanel] = useState(true);
+
+  // Chat state
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [model, setModel] = useState("opus");
   const [showModelPicker, setShowModelPicker] = useState(false);
   const [session, setSession] = useState<SessionInfo>({
-    id: null, model: "", tools: [], cwd: "",
+    id: activeSessionId, model: "", tools: [], cwd: "",
   });
 
-  // Streaming state — accumulated during SSE
+  // Streaming state
   const [streamingText, setStreamingText] = useState("");
   const [streamingTools, setStreamingTools] = useState<ToolUseItem[]>([]);
   const [streamingThinking, setStreamingThinking] = useState<ThinkingBlock[]>([]);
@@ -97,13 +132,22 @@ export default function Assistant() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  // Persist active session
+  useEffect(() => {
+    if (activeSessionId) {
+      localStorage.setItem(LS_ACTIVE_SESSION, activeSessionId);
+    } else {
+      localStorage.removeItem(LS_ACTIVE_SESSION);
+    }
+  }, [activeSessionId]);
+
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText, streamingTools]);
 
   // Auto-focus
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => { inputRef.current?.focus(); }, [activeSessionId]);
 
   // Close model picker on outside click
   useEffect(() => {
@@ -121,13 +165,46 @@ export default function Assistant() {
     }
   };
 
-  const clearConversation = () => {
-    setMessages([]);
-    setSession((s) => ({ ...s, id: null }));
+  // Switch to a session
+  const switchSession = (id: string | null) => {
+    if (isStreaming) return;
+    // Save current messages
+    if (session.id && messages.length > 0) {
+      messagesMapRef.current.set(session.id, messages);
+    }
+    setActiveSessionId(id);
+    setSession((s) => ({ ...s, id }));
+    setMessages(id ? (messagesMapRef.current.get(id) || []) : []);
     setStreamingText("");
     setStreamingTools([]);
     setStreamingThinking([]);
     setTurnCount(0);
+  };
+
+  // New conversation
+  const newConversation = () => {
+    if (isStreaming) return;
+    if (session.id && messages.length > 0) {
+      messagesMapRef.current.set(session.id, messages);
+    }
+    setActiveSessionId(null);
+    setSession({ id: null, model: "", tools: [], cwd: "" });
+    setMessages([]);
+    setStreamingText("");
+    setStreamingTools([]);
+    setStreamingThinking([]);
+    setTurnCount(0);
+    inputRef.current?.focus();
+  };
+
+  // Delete session
+  const deleteSession = async (id: string) => {
+    await api.deleteAssistantSession(id);
+    refetchSessions();
+    if (activeSessionId === id) {
+      newConversation();
+    }
+    messagesMapRef.current.delete(id);
   };
 
   const stopStreaming = () => {
@@ -182,7 +259,6 @@ export default function Assistant() {
       let resultCost = 0;
       let resultDuration = 0;
       let resultModel = "";
-      // Map tool_use id → index in currentTools for attaching results
       const toolIdMap = new Map<string, number>();
 
       while (true) {
@@ -199,13 +275,15 @@ export default function Assistant() {
             const event = JSON.parse(line.slice(6));
 
             if (event.type === "system" && event.subtype === "init") {
+              const newId = event.session_id;
               setSession({
-                id: event.session_id,
+                id: newId,
                 model: event.model || "",
                 tools: event.tools || [],
                 cwd: event.cwd || "",
                 version: event.claude_code_version,
               });
+              setActiveSessionId(newId);
               resultModel = event.model || "";
             } else if (event.type === "assistant") {
               const msg = event.message;
@@ -219,11 +297,7 @@ export default function Assistant() {
                     setStreamingThinking([...currentThinking]);
                   } else if (block.type === "tool_use") {
                     const idx = currentTools.length;
-                    currentTools.push({
-                      id: block.id,
-                      name: block.name,
-                      input: block.input,
-                    });
+                    currentTools.push({ id: block.id, name: block.name, input: block.input });
                     if (block.id) toolIdMap.set(block.id, idx);
                     setStreamingTools([...currentTools]);
                   }
@@ -233,41 +307,28 @@ export default function Assistant() {
                 setSession((s) => ({ ...s, id: event.session_id }));
               }
             } else if (event.type === "tool_result") {
-              // Attach result to the corresponding tool_use
               const toolUseId = event.tool_use_id;
               const content = event.content;
               let resultText = "";
-              if (typeof content === "string") {
-                resultText = content;
-              } else if (Array.isArray(content)) {
-                resultText = content
-                  .map((c: any) => c.type === "text" ? c.text : `[${c.type}]`)
-                  .join("\n");
+              if (typeof content === "string") resultText = content;
+              else if (Array.isArray(content)) {
+                resultText = content.map((c: any) => c.type === "text" ? c.text : `[${c.type}]`).join("\n");
               }
               if (toolUseId && toolIdMap.has(toolUseId)) {
                 const idx = toolIdMap.get(toolUseId)!;
-                currentTools[idx] = {
-                  ...currentTools[idx],
-                  result: resultText,
-                  isError: event.is_error === true,
-                };
+                currentTools[idx] = { ...currentTools[idx], result: resultText, isError: event.is_error === true };
                 setStreamingTools([...currentTools]);
               }
             } else if (event.type === "result") {
               if (event.total_cost_usd) resultCost = event.total_cost_usd;
               if (event.duration_ms) resultDuration = event.duration_ms;
-              if (event.session_id) {
-                setSession((s) => ({ ...s, id: event.session_id }));
-              }
+              if (event.session_id) setSession((s) => ({ ...s, id: event.session_id }));
               if (event.num_turns) setTurnCount((c) => c + event.num_turns);
             }
-          } catch {
-            // skip unparseable
-          }
+          } catch { /* skip */ }
         }
       }
 
-      // Finalize
       if (currentText || currentTools.length > 0 || currentThinking.length > 0) {
         setMessages((prev) => [...prev, {
           role: "assistant",
@@ -291,54 +352,84 @@ export default function Assistant() {
     setIsStreaming(false);
     abortRef.current = null;
     inputRef.current?.focus();
-  }, [input, isStreaming, model, session]);
+    // Refresh session list after response completes (server upserted it)
+    setTimeout(() => refetchSessions(), 500);
+  }, [input, isStreaming, model, session, refetchSessions]);
 
   const hasContent = messages.length > 0 || isStreaming;
 
   return (
-    <div className="animate-fade-up flex flex-col" style={{ height: "calc(100vh - 48px)" }}>
-      {/* ── Header bar ── */}
-      <div className="flex items-center justify-between mb-2 px-1">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-base font-semibold text-[#e2e8f0] tracking-tight">Assistant</h1>
-          {session.id && (
-            <span className="text-[10px] font-mono text-[#334155]">
-              {session.id.slice(0, 8)}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {session.cwd && (
-            <span className="text-[10px] font-mono text-[#334155]">
-              {session.cwd.replace(/^\/Users\/[^/]+/, "~").split("/").slice(-2).join("/")}
-            </span>
-          )}
-          {turnCount > 0 && (
-            <span className="text-[10px] font-mono text-[#334155]">
-              {turnCount} turn{turnCount !== 1 ? "s" : ""}
-            </span>
-          )}
-          {hasContent && (
+    <div className="animate-fade-up flex" style={{ height: "calc(100vh - 48px)" }}>
+      {/* ── Session Panel ── */}
+      {showPanel && (
+        <div className="w-[240px] shrink-0 border-r border-[#1e293b]/50 flex flex-col bg-[#0a0b0f]/40">
+          {/* Panel header */}
+          <div className="flex items-center justify-between px-3 py-3">
+            <span className="text-[11px] font-medium text-[#64748b] uppercase tracking-wider">Conversations</span>
             <button
-              onClick={clearConversation}
-              className="flex items-center gap-1 text-[11px] text-[#475569] hover:text-[#e2e8f0] transition-colors px-2 py-1 rounded-lg hover:bg-[#1e293b]/40"
+              onClick={newConversation}
+              disabled={isStreaming}
+              className="p-1 rounded-md text-[#64748b] hover:text-[#e2e8f0] hover:bg-[#1e293b]/40 transition-colors disabled:opacity-40"
+              title="New conversation"
             >
-              <Plus size={12} />
-              New
+              <Plus size={14} />
             </button>
-          )}
+          </div>
+
+          {/* Session list */}
+          <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+            {sessionList.length === 0 ? (
+              <div className="px-2 py-8 text-center">
+                <MessageSquare size={20} className="text-[#1e293b] mx-auto mb-2" />
+                <p className="text-[11px] text-[#334155]">No conversations yet</p>
+              </div>
+            ) : (
+              sessionList.map((s) => (
+                <SessionItem
+                  key={s.id}
+                  session={s}
+                  isActive={activeSessionId === s.id}
+                  onClick={() => switchSession(s.id)}
+                  onDelete={() => deleteSession(s.id)}
+                />
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ── Main container ── */}
+      {/* ── Chat area ── */}
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPanel(!showPanel)}
+              className="p-1 rounded-md text-[#475569] hover:text-[#e2e8f0] hover:bg-[#1e293b]/40 transition-colors"
+            >
+              {showPanel ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
+            </button>
+            {session.cwd && (
+              <span className="text-[10px] font-mono text-[#334155]">
+                {session.cwd.replace(/^\/Users\/[^/]+/, "~").split("/").slice(-2).join("/")}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {turnCount > 0 && (
+              <span className="text-[10px] font-mono text-[#334155]">
+                {turnCount} turn{turnCount !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+        </div>
 
-        {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-1">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-1">
           {!hasContent ? (
             <div className="flex-1 flex items-center justify-center h-full">
               <div className="text-center animate-fade-up">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#151a25] to-[#0f1219] border border-[#1e293b] flex items-center justify-center mb-4 mx-auto shadow-[0_0_40px_rgba(52,211,153,0.04)]">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#151a25] to-[#0f1219] border border-[#1e293b] flex items-center justify-center mb-4 mx-auto">
                   <Sparkles size={22} className="text-[#34d399]/60" />
                 </div>
                 <h3 className="text-[15px] font-medium text-[#e2e8f0] mb-1.5 tracking-tight">
@@ -351,46 +442,41 @@ export default function Assistant() {
             </div>
           ) : (
             <>
+              {/* Resumed session hint */}
+              {messages.length === 0 && !isStreaming && activeSessionId && (
+                <div className="flex justify-center py-6">
+                  <span className="text-[11px] text-[#334155] bg-[#0f1219] px-3 py-1.5 rounded-lg border border-[#1e293b]/30">
+                    Session resumed — send a message to continue
+                  </span>
+                </div>
+              )}
               {messages.map((msg, i) => (
                 <MessageBubble key={i} msg={msg} />
               ))}
-
-              {/* Streaming in progress */}
               {isStreaming && (
-                <StreamingBubble
-                  text={streamingText}
-                  tools={streamingTools}
-                  thinking={streamingThinking}
-                />
+                <StreamingBubble text={streamingText} tools={streamingTools} thinking={streamingThinking} />
               )}
             </>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* ── Input area — Claude-style unified container ── */}
+        {/* Input */}
         <div className="px-5 py-4">
           <div className="rounded-2xl border border-[#1e293b]/70 bg-[#0f1219] focus-within:border-[#34d399]/25 transition-colors">
-            {/* Textarea */}
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => { setInput(e.target.value); adjustTextarea(); }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
               }}
               placeholder="Ask anything..."
               disabled={isStreaming}
               rows={1}
               className="w-full bg-transparent text-[#e2e8f0] placeholder-[#334155] text-sm px-4 pt-3 pb-2 focus:outline-none disabled:opacity-50 resize-none overflow-hidden leading-relaxed"
             />
-
-            {/* Bottom bar inside the container */}
             <div className="flex items-center justify-between px-3 pb-2.5">
-              {/* Left: model selector */}
               <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setShowModelPicker(!showModelPicker)}
@@ -407,9 +493,7 @@ export default function Assistant() {
                         key={m.id}
                         onClick={() => { setModel(m.id); setShowModelPicker(false); }}
                         className={`flex items-center justify-between w-full px-3 py-2 text-left transition-colors ${
-                          model === m.id
-                            ? "bg-[#34d399]/8 text-[#34d399]"
-                            : "text-[#c9d1d9] hover:bg-[#151a25]"
+                          model === m.id ? "bg-[#34d399]/8 text-[#34d399]" : "text-[#c9d1d9] hover:bg-[#151a25]"
                         }`}
                       >
                         <span className="text-[12px] font-mono">{m.label}</span>
@@ -419,22 +503,12 @@ export default function Assistant() {
                   </div>
                 )}
               </div>
-
-              {/* Right: send / stop */}
               {isStreaming ? (
-                <button
-                  onClick={stopStreaming}
-                  className="p-1.5 rounded-lg bg-[#f87171]/10 text-[#f87171] hover:bg-[#f87171]/15 transition-colors"
-                  title="Stop"
-                >
+                <button onClick={stopStreaming} className="p-1.5 rounded-lg bg-[#f87171]/10 text-[#f87171] hover:bg-[#f87171]/15 transition-colors" title="Stop">
                   <StopCircle size={16} />
                 </button>
               ) : (
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim()}
-                  className="p-1.5 rounded-lg bg-[#e2e8f0] text-[#0f1219] hover:bg-[#c9d1d9] transition-colors disabled:opacity-20 disabled:bg-[#334155]"
-                >
+                <button onClick={sendMessage} disabled={!input.trim()} className="p-1.5 rounded-lg bg-[#e2e8f0] text-[#0f1219] hover:bg-[#c9d1d9] transition-colors disabled:opacity-20 disabled:bg-[#334155]">
                   <Send size={14} />
                 </button>
               )}
@@ -444,6 +518,68 @@ export default function Assistant() {
       </div>
     </div>
   );
+}
+
+/* ─── Session Item ──────────────────────────────────────── */
+
+function SessionItem({
+  session,
+  isActive,
+  onClick,
+  onDelete,
+}: {
+  session: AssistantSession;
+  isActive: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+}) {
+  const timeAgo = session.updatedAt ? formatTimeAgo(session.updatedAt) : "";
+
+  return (
+    <button
+      onClick={onClick}
+      className={`group w-full text-left px-2.5 py-2 rounded-lg transition-colors relative ${
+        isActive
+          ? "bg-[#1e293b]/60 text-[#e2e8f0]"
+          : "text-[#94a3b8] hover:bg-[#1e293b]/30"
+      }`}
+    >
+      <div className="text-[12px] truncate pr-5 leading-snug">
+        {session.title || "Untitled"}
+      </div>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        {session.model && (
+          <span className="text-[9px] font-mono text-[#475569]">
+            {session.model.replace("claude-", "").split("-").slice(0, 1).join("")}
+          </span>
+        )}
+        {timeAgo && <span className="text-[9px] text-[#334155]">{timeAgo}</span>}
+        {session.totalCostUsd != null && session.totalCostUsd > 0 && (
+          <span className="text-[9px] font-mono text-[#334155]">${session.totalCostUsd.toFixed(2)}</span>
+        )}
+      </div>
+      {/* Delete button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="absolute top-2 right-1.5 p-0.5 rounded opacity-0 group-hover:opacity-100 text-[#475569] hover:text-[#f87171] transition-all"
+        title="Delete"
+      >
+        <Trash2 size={11} />
+      </button>
+    </button>
+  );
+}
+
+function formatTimeAgo(ts: number): string {
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  return `${Math.floor(days / 7)}w`;
 }
 
 /* ─── Streaming Bubble ──────────────────────────────────── */

@@ -50,3 +50,15 @@ export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value"),
 });
+
+export const assistantSessions = sqliteTable("assistant_sessions", {
+  id: text("id").primaryKey(),
+  title: text("title"),
+  model: text("model"),
+  cwd: text("cwd"),
+  createdAt: integer("created_at"),
+  updatedAt: integer("updated_at"),
+  lastMessage: text("last_message"),
+  messageCount: integer("message_count").default(0),
+  totalCostUsd: real("total_cost_usd").default(0),
+});

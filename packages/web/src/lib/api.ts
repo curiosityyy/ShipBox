@@ -26,6 +26,22 @@ async function postJson<T>(path: string, body?: unknown): Promise<T> {
   return res.json();
 }
 
+async function patchJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+async function deleteJson<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
 export const api = {
   dashboard: () => fetcher<any>("/dashboard"),
   repos: () => fetcher<any>("/repos"),
@@ -66,4 +82,7 @@ export const api = {
       body: JSON.stringify({ message, sessionId, model, cwd }),
     });
   },
+  assistantSessions: () => fetcher<any>("/assistant/sessions"),
+  renameAssistantSession: (id: string, title: string) => patchJson<any>(`/assistant/sessions/${id}`, { title }),
+  deleteAssistantSession: (id: string) => deleteJson<any>(`/assistant/sessions/${id}`),
 };

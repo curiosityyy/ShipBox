@@ -1,5 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { execSync, spawn } from "node:child_process";
+import { db } from "../db/index.js";
+import { assistantSessions } from "../db/schema.js";
+import { eq, desc } from "drizzle-orm";
 
 // Resolve claude binary path and node binary path at startup
 let claudePath = "claude";
@@ -30,6 +33,38 @@ function minimalEnv(): Record<string, string> {
 }
 
 export async function chatRoutes(app: FastifyInstance) {
+  // ── List assistant sessions ──
+  app.get("/api/assistant/sessions", async () => {
+    const rows = await db
+      .select()
+      .from(assistantSessions)
+      .orderBy(desc(assistantSessions.updatedAt));
+    return { sessions: rows };
+  });
+
+  // ── Rename session ──
+  app.patch("/api/assistant/sessions/:id", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const { title } = req.body as { title: string };
+    if (!title?.trim()) {
+      reply.status(400).send({ error: "Title required" });
+      return;
+    }
+    await db
+      .update(assistantSessions)
+      .set({ title: title.trim() })
+      .where(eq(assistantSessions.id, id));
+    return { ok: true };
+  });
+
+  // ── Delete session ──
+  app.delete("/api/assistant/sessions/:id", async (req) => {
+    const { id } = req.params as { id: string };
+    await db.delete(assistantSessions).where(eq(assistantSessions.id, id));
+    return { ok: true };
+  });
+
+  // ── Chat (SSE stream) ──
   app.post("/api/chat", (req, reply) => {
     const { message, sessionId, model, cwd } = req.body as {
       message: string;
@@ -63,7 +98,6 @@ export async function chatRoutes(app: FastifyInstance) {
     app.log.info({ nodePath, claudePath, cwd: workDir, argsCount: args.length }, "Spawning claude");
 
     // Use node directly to run the claude script with a minimal env
-    // This avoids nested-session detection from inherited CLAUDE* env vars
     const child = spawn(nodePath, [claudePath, ...args], {
       cwd: workDir,
       env: minimalEnv(),
@@ -71,6 +105,9 @@ export async function chatRoutes(app: FastifyInstance) {
     });
 
     let buffer = "";
+    let capturedSessionId: string | null = sessionId || null;
+    let capturedModel: string = model || "";
+    let totalCost = 0;
 
     child.stdout.on("data", (chunk: Buffer) => {
       buffer += chunk.toString();
@@ -82,6 +119,15 @@ export async function chatRoutes(app: FastifyInstance) {
         try {
           const event = JSON.parse(line);
           raw.write(`data: ${JSON.stringify(event)}\n\n`);
+
+          // Capture session info for DB upsert
+          if (event.type === "system" && event.subtype === "init" && event.session_id) {
+            capturedSessionId = event.session_id;
+            if (event.model) capturedModel = event.model;
+          }
+          if (event.type === "result" && event.total_cost_usd) {
+            totalCost = event.total_cost_usd;
+          }
         } catch {
           // non-JSON line
         }
@@ -97,11 +143,55 @@ export async function chatRoutes(app: FastifyInstance) {
         try {
           const event = JSON.parse(buffer);
           raw.write(`data: ${JSON.stringify(event)}\n\n`);
+          if (event.type === "result" && event.total_cost_usd) {
+            totalCost = event.total_cost_usd;
+          }
         } catch {}
       }
       app.log.info({ code, signal }, "claude process closed");
       raw.write(`data: ${JSON.stringify({ type: "close", code, signal })}\n\n`);
       raw.end();
+
+      // Upsert session metadata into DB
+      if (capturedSessionId && code === 0) {
+        const now = Date.now();
+        const title = message.slice(0, 60).replace(/\n/g, " ");
+        try {
+          const existing = db
+            .select()
+            .from(assistantSessions)
+            .where(eq(assistantSessions.id, capturedSessionId))
+            .get();
+
+          if (existing) {
+            db.update(assistantSessions)
+              .set({
+                updatedAt: now,
+                lastMessage: message.slice(0, 200),
+                messageCount: (existing.messageCount || 0) + 1,
+                totalCostUsd: (existing.totalCostUsd || 0) + totalCost,
+              })
+              .where(eq(assistantSessions.id, capturedSessionId))
+              .run();
+          } else {
+            db.insert(assistantSessions)
+              .values({
+                id: capturedSessionId,
+                title,
+                model: capturedModel,
+                cwd: workDir,
+                createdAt: now,
+                updatedAt: now,
+                lastMessage: message.slice(0, 200),
+                messageCount: 1,
+                totalCostUsd: totalCost,
+              })
+              .run();
+          }
+        } catch (err: any) {
+          app.log.error({ err: err.message }, "Failed to upsert assistant session");
+        }
+      }
     });
 
     child.on("error", (err) => {

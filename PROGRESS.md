@@ -373,6 +373,29 @@ Compared ShipBox against Readout screenshots and made targeted improvements.
 - [x] 移除主容器的 border 和 gradient background，让页面更通透
 - [x] Header 简化：session ID 用更淡的颜色，减少视觉噪音
 
+### 多会话管理 (Multi-Session Management)
+- [x] **数据库**: `assistant_sessions` 表 (id, title, model, cwd, created_at, updated_at, last_message, message_count, total_cost_usd)
+  - Schema: `packages/server/src/db/schema.ts`
+  - DDL: `packages/server/src/db/index.ts` (CREATE TABLE IF NOT EXISTS)
+- [x] **后端 CRUD**: `packages/server/src/routes/chat.ts`
+  - `GET /api/assistant/sessions` — 按 updatedAt DESC 排序返回所有会话
+  - `PATCH /api/assistant/sessions/:id` — 重命名会话标题
+  - `DELETE /api/assistant/sessions/:id` — 删除会话
+  - `POST /api/chat` close 回调中自动 upsert 会话元数据 (title, model, cwd, cost, message count)
+- [x] **前端 API**: `packages/web/src/lib/api.ts`
+  - 新增 `patchJson`, `deleteJson` HTTP helpers
+  - 新增 `assistantSessions()`, `renameAssistantSession(id, title)`, `deleteAssistantSession(id)`
+- [x] **前端 UI**: `packages/web/src/pages/Assistant.tsx`
+  - 左侧 240px 会话面板：标题 "CONVERSATIONS" + "+" 新建按钮
+  - 会话列表：标题、模型、时间 (formatTimeAgo)、费用、hover 删除按钮
+  - 空状态："No conversations yet" 图标 + 文字
+  - `activeSessionId` 持久化到 localStorage，刷新页面保留当前会话
+  - `messagesMapRef` (Map<string, ChatMessage[]>) 内存缓存每个会话的消息
+  - 切换会话时恢复历史消息，resumed 会话显示 "Session resumed" 提示
+  - 面板可折叠（PanelLeftClose/PanelLeft 图标切换）
+  - TanStack React Query 管理会话列表数据
+  - 删除会话后自动切换到新会话或第一个可用会话
+
 ### Dependencies
 - [x] 新增 `react-markdown` ^10.1.0
 - [x] 新增 `remark-gfm` ^4.0.1

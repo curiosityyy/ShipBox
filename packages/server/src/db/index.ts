@@ -61,6 +61,17 @@ sqlite.exec(`
     key TEXT PRIMARY KEY,
     value TEXT
   );
+  CREATE TABLE IF NOT EXISTS assistant_sessions (
+    id TEXT PRIMARY KEY,
+    title TEXT,
+    model TEXT,
+    cwd TEXT,
+    created_at INTEGER,
+    updated_at INTEGER,
+    last_message TEXT,
+    message_count INTEGER DEFAULT 0,
+    total_cost_usd REAL DEFAULT 0
+  );
 `);
 
 // Initialize default settings

@@ -399,3 +399,42 @@ Compared ShipBox against Readout screenshots and made targeted improvements.
 ### Dependencies
 - [x] 新增 `react-markdown` ^10.1.0
 - [x] 新增 `remark-gfm` ^4.0.1
+
+---
+
+## Settings 页面完善 (2026-03-09)
+
+对照 Readout 截图，补全了 Settings 页面缺失的 5 个 section。
+
+### 后端: `packages/server/src/routes/settings.ts`
+- [x] `GET /api/settings/claude-binary` — 检测 Claude 二进制路径 + 版本号
+- [x] `GET /api/settings/export` — 导出全部数据 (settings, sessions, costs, tool_calls) 为 JSON
+
+### 后端: `packages/server/src/db/index.ts`
+- [x] 新增 8 个默认设置项 (INSERT OR IGNORE):
+  - `default_model` (sonnet), `auto_refresh_enabled` (true), `auto_refresh_interval` (30s)
+  - `daily_budget_limit` (0), `monthly_budget_limit` (0), `alert_threshold` (80%)
+  - `sidebar_visibility` ({}), `agents_enabled` ({ claude_code: true })
+
+### 前端: `packages/web/src/pages/Settings.tsx` — 完整重写
+- [x] **Rescan Workspace** — 带 RefreshCw 图标
+- [x] **Scan Directories** — 路径显示 ~ 缩写，Add Directory + Scan for New
+- [x] **ShipBox Assistant** (新增) — Claude Code 二进制检测 (路径 + 版本 + 状态灯)，默认模型选择 (Haiku/Sonnet/Opus pill 按钮)
+- [x] **General** (扩展) — Auto-refresh 开关 + 间隔秒数，Server Port，Export Data 下载按钮
+- [x] **Agents** (新增) — Claude Code (路径 + 启用开关)，Codex (Not installed, disabled)
+- [x] **Sidebar** (新增) — Customize Sidebar 按钮展开 2 列 grid，点击切换显示/隐藏，Reset to Default
+- [x] **Cost Budget** (新增) — Daily/Monthly $ 输入框，Alert 阈值滑块 (0-100%, 默认 80%)
+
+### 前端: `packages/web/src/components/Sidebar.tsx`
+- [x] 读取 `sidebar_visibility` 设置，过滤隐藏的导航项
+- [x] 整个 section 的项目都隐藏时不渲染 section header
+
+### 前端组件
+- [x] `Toggle` — 可复用开关组件 (disabled 支持)
+- [x] `SectionHeader` — 统一 section 标题样式 (图标 + 大写 label)
+- [x] `useDebouncedSave` — 防抖保存 hook (数字输入延迟 600ms 写入)
+- [x] `BudgetInputs` — 预算输入组件 (daily/monthly + alert slider)
+- [x] `SidebarCustomizer` — sidebar 自定义 grid 面板
+
+### API 客户端: `packages/web/src/lib/api.ts`
+- [x] 新增 `claudeBinary()`, `exportData()`

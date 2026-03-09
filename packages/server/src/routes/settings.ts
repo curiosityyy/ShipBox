@@ -1,8 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { db } from "../db/index.js";
-import { settings } from "../db/schema.js";
+import { settings, sessions, dailyCosts, toolCalls } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+import { execSync } from "node:child_process";
 
 const putSettingsParams = z.object({
   key: z.string().min(1),
@@ -45,5 +46,34 @@ export async function settingsRoutes(app: FastifyInstance) {
       .run();
 
     return { ok: true };
+  });
+
+  // Detect Claude binary path
+  app.get("/api/settings/claude-binary", async () => {
+    try {
+      const path = execSync("which claude", { encoding: "utf-8" }).trim();
+      let version = "";
+      try {
+        version = execSync("claude --version", { encoding: "utf-8" }).trim();
+      } catch {}
+      return { found: true, path, version };
+    } catch {
+      return { found: false, path: null, version: null };
+    }
+  });
+
+  // Export all data as JSON
+  app.get("/api/settings/export", async () => {
+    const allSettings = db.select().from(settings).all();
+    const allSessions = db.select().from(sessions).all();
+    const allCosts = db.select().from(dailyCosts).all();
+    const allTools = db.select().from(toolCalls).all();
+    return {
+      exportedAt: new Date().toISOString(),
+      settings: allSettings,
+      sessions: allSessions,
+      dailyCosts: allCosts,
+      toolCalls: allTools,
+    };
   });
 }

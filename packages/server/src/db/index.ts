@@ -77,6 +77,14 @@ sqlite.exec(`
 // Initialize default settings
 const defaultSettings = [
   { key: "scan_directories", value: JSON.stringify([join(homedir(), "project")]) },
+  { key: "default_model", value: JSON.stringify("sonnet") },
+  { key: "auto_refresh_enabled", value: JSON.stringify(true) },
+  { key: "auto_refresh_interval", value: JSON.stringify(30) },
+  { key: "daily_budget_limit", value: JSON.stringify(0) },
+  { key: "monthly_budget_limit", value: JSON.stringify(0) },
+  { key: "alert_threshold", value: JSON.stringify(80) },
+  { key: "sidebar_visibility", value: JSON.stringify({}) },
+  { key: "agents_enabled", value: JSON.stringify({ claude_code: true }) },
 ];
 for (const s of defaultSettings) {
   sqlite.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run(s.key, s.value);

@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { clsx } from "clsx";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../lib/api";
 import {
   LayoutDashboard, MessageSquare,
   Radio, Clock, FileText, Wrench, DollarSign, Server, Cable,
@@ -62,6 +64,9 @@ const sections = [
 ];
 
 export function Sidebar() {
+  const { data: settingsData } = useQuery({ queryKey: ["settings"], queryFn: api.settings, staleTime: 30000 });
+  const sidebarVisibility: Record<string, boolean> = settingsData?.sidebar_visibility || {};
+
   return (
     <aside
       className="w-[240px] min-w-[240px] flex flex-col h-screen overflow-hidden"
@@ -79,12 +84,15 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 pb-2">
-        {sections.map((section) => (
+        {sections.map((section) => {
+          const visibleItems = section.items.filter((item) => sidebarVisibility[item.to] !== false);
+          if (visibleItems.length === 0) return null;
+          return (
           <div key={section.label} className="mb-5">
             <div className="text-[11px] font-medium text-[#6b7280] uppercase tracking-[0.08em] px-3 mb-1.5">
               {section.label}
             </div>
-            {section.items.map((item) => (
+            {visibleItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -103,7 +111,8 @@ export function Sidebar() {
               </NavLink>
             ))}
           </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Settings - separated by accent gradient line */}

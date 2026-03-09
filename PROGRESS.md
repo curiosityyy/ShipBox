@@ -210,11 +210,25 @@ All 5 Workspace pages (beyond Repos) are now fully functional with real data.
   - Sections listing each config entry with glass-card styling
   - Per-section empty states
 
-### Assistant Page
-- [x] Frontend: `packages/web/src/pages/Assistant.tsx`
-  - Non-functional chat UI shell (visual placeholder for future implementation)
-  - Model selector (disabled), text input (disabled), send button (disabled)
-  - Centered "Start a conversation with Claude" message
+### Assistant Page (fully functional — 2026-03-09)
+- [x] Backend: `POST /api/chat` in `routes/chat.ts` — spawns `claude` CLI via SSE
+  - Resolves `node` + `claude` binary paths at startup
+  - `minimalEnv()` with only essential vars (strips all `CLAUDE*` to avoid nested-session detection)
+  - Spawns `node claude-script` directly (not via shebang) for reliable env isolation
+  - `reply.hijack()` for Fastify SSE; uses `raw.on("close")` (not `req.raw`) for cleanup
+  - Supports `--resume <sessionId>`, `--model`, `--dangerously-skip-permissions`
+- [x] Frontend: `packages/web/src/pages/Assistant.tsx` — full Claude Code web experience
+  - SSE streaming with all event types: `init`, `assistant`, `tool_result`, `result`, `thinking`
+  - Markdown rendering via `react-markdown` + `remark-gfm` (tables, code blocks, inline code, lists)
+  - Code blocks with language label + copy button
+  - Tool cards with colored icons, inline summary, expandable input/result views
+  - Thinking blocks (collapsible, purple accent)
+  - Model selector (Opus/Sonnet/Haiku) with descriptions
+  - Session continuity via `--resume` with session ID in header
+  - Stop button (abort streaming), New conversation button, turn counter
+  - Cost + duration display per response, Claude Code version in footer
+  - Copy button on hover for assistant text
+  - Keyboard: Enter to send, Shift+Enter for newline
 
 ### All 25 Pages Complete
 - [x] No StubPage usage remaining - all pages have real implementations
@@ -282,3 +296,83 @@ Compared ShipBox against Readout screenshots and made targeted improvements.
 
 ### Components
 - [x] New: `PageSkeleton.tsx` - reusable loading skeleton with configurable stat cards
+
+---
+
+## AI Assistant: Full Implementation (2026-03-09)
+
+从非功能的 UI shell 升级为完整可用的 Claude Code Web 前端。
+
+### Backend: `packages/server/src/routes/chat.ts`
+- [x] `POST /api/chat` — SSE 流式接口，spawn `claude` CLI 子进程
+- [x] `minimalEnv()` — 仅传递 6 个必要环境变量 (HOME, USER, PATH, SHELL, TERM, LANG)
+  - 剥离所有 `CLAUDE*` 变量，避免嵌套会话检测 (nested-session detection)
+- [x] 直接用 `node` 执行 claude 脚本，不依赖 shebang (`#!/usr/bin/env node`)
+- [x] 启动时通过 `which claude` / `which node` 解析二进制路径
+- [x] 修复 Fastify SSE 生命周期 bug:
+  - `reply.hijack()` 后 `req.raw.on("close")` 会立即触发 → 改用 `raw.on("close")`
+- [x] 支持 `--resume <sessionId>` 会话恢复、`--model` 模型选择
+- [x] `--dangerously-skip-permissions` 免权限确认
+
+### Frontend: `packages/web/src/pages/Assistant.tsx` — 完整重写
+- [x] SSE 流式解析，处理全部事件类型：
+  - `system.init` — 获取 session_id, model, tools, cwd, version
+  - `assistant` — text / tool_use / thinking content blocks
+  - `tool_result` — 工具执行结果，关联到对应 tool_use
+  - `result` — 总 cost、duration、turn 数
+- [x] Markdown 渲染 (`react-markdown` + `remark-gfm`)
+  - 表格：深色主题样式，header 区分，rounded border
+  - 代码块：语言标签 + 复制按钮 + 深色背景
+  - 内联代码：pill 样式，border + 背景
+  - 列表、引用、标题、链接、分割线
+- [x] Tool Cards — 工具调用可视化
+  - 每种工具独立颜色图标 (Bash=黄, Read=蓝, Edit=绿, Grep=紫, Glob=青, Web=橙)
+  - 内联摘要 (命令内容 / 文件路径 / 搜索 pattern)
+  - 可展开 input (代码图标) 和 result (眼睛图标)
+  - 错误状态红色 badge，成功绿色小圆点
+  - 未展开时显示结果首行预览
+- [x] Thinking Blocks — 思考过程展示
+  - 紫色 accent (Sparkles 图标)
+  - 折叠/展开，折叠时显示前 120 字预览
+  - 流式时显示 spinning loader
+- [x] 模型选择器
+  - Opus / Sonnet / Haiku，带描述 (Most capable / Balanced / Fastest)
+  - 下拉菜单带动画，外部点击关闭
+  - streaming 期间 disabled
+- [x] 会话管理
+  - `--resume` 自动传递 session_id 保持对话连续性
+  - 头部显示 session_id (前 8 位) + 绿色指示灯
+  - "+ New" 按钮清空对话开始新会话
+  - Turn 计数器
+- [x] 流式交互体验
+  - "Thinking..." 加载状态（spinner + 文字）
+  - 绿色光标脉冲动画
+  - Stop 按钮（红色，AbortController 中断请求）
+  - 响应完成后显示 model badge + 耗时 + 费用
+- [x] 文本复制
+  - 每条 assistant 消息 hover 显示复制按钮
+  - 代码块独立复制按钮，复制后显示绿色 ✓
+- [x] 输入区域
+  - 自动调高 textarea (最大 160px)
+  - Enter 发送，Shift+Enter 换行
+  - placeholder "Ask anything..."
+  - streaming 期间 disabled + 降低透明度
+- [x] 信息展示
+  - CWD 路径 (~ 缩写) 显示在头部
+  - Claude Code 版本号显示在 footer
+  - 键盘快捷键提示
+
+### 输入区域重设计 (Claude.ai 风格)
+- [x] 统一输入容器：textarea + model selector + send button 在同一个 rounded-2xl 容器内
+  - 移除了 Enter/Shift+Enter 键盘提示文字
+  - 移除了独立的 model selector 和 send button 外部元素
+  - Model selector 在容器内部左下，Send button 在容器内部右下
+  - Send button: 白底深色图标 (有内容时) / 灰色半透明 (无内容时)
+  - Stop button: 红色圆形，替换 send button 位置
+  - focus 时容器边框变为 accent green
+- [x] 移除主容器的 border 和 gradient background，让页面更通透
+- [x] Header 简化：session ID 用更淡的颜色，减少视觉噪音
+
+### Dependencies
+- [x] 新增 `react-markdown` ^10.1.0
+- [x] 新增 `remark-gfm` ^4.0.1

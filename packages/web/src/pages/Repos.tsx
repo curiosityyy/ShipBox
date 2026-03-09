@@ -4,6 +4,7 @@ import { PageHeader } from "../components/PageHeader";
 import { EmptyState } from "../components/EmptyState";
 import { FolderGit2 } from "lucide-react";
 import { clsx } from "clsx";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const statusDot: Record<string, string> = {
   active: "bg-[#34d399] shadow-[0_0_6px_rgba(52,211,153,0.4)]",
@@ -20,7 +21,7 @@ const statusText: Record<string, string> = {
 export default function Repos() {
   const { data, isLoading } = useQuery({ queryKey: ["repos"], queryFn: api.repos });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={0} />;
 
   const repos = data?.repos || [];
 

@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { Radio } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Live() {
   const { data, isLoading } = useQuery({
@@ -11,7 +12,7 @@ export default function Live() {
     refetchInterval: 3000,
   });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
 
   const sessionIds = data?.activeSessionIds || [];
 

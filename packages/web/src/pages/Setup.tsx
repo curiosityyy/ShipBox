@@ -4,11 +4,12 @@ import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { Server, Link2, ShieldCheck } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Setup() {
   const { data, isLoading } = useQuery({ queryKey: ["setup"], queryFn: api.setup });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
 
   const mcpServers = data?.mcpServers || {};
   const hooks = data?.hooks || {};

@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { Camera, GitBranch, Save } from "lucide-react";
 import { clsx } from "clsx";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Snapshots() {
   const queryClient = useQueryClient();
@@ -17,7 +18,7 @@ export default function Snapshots() {
     },
   });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
   if (!data) return null;
 
   const snapshots = data.snapshots || [];

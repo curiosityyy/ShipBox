@@ -4,6 +4,7 @@ import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { CalendarDays } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const repoColors = ["#34d399", "#818cf8", "#fbbf24", "#fb923c", "#f87171", "#38bdf8", "#a78bfa"];
 
@@ -22,7 +23,7 @@ function timeAgo(dateStr: string): string {
 export default function Timeline() {
   const { data, isLoading } = useQuery({ queryKey: ["timeline"], queryFn: api.timeline });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
   if (!data) return null;
 
   const commits = data.commits || [];

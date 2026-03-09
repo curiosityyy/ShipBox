@@ -3,11 +3,12 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
 import { EmptyState } from "../components/EmptyState";
 import { Brain } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Memory() {
   const { data, isLoading } = useQuery({ queryKey: ["memory"], queryFn: api.memory });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={0} />;
 
   const memories = data?.memories || [];
 

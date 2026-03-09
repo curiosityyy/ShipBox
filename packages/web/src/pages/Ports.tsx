@@ -4,11 +4,12 @@ import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { Cable } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Ports() {
   const { data, isLoading } = useQuery({ queryKey: ["ports"], queryFn: api.ports });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
 
   const ports = data?.ports || [];
   const processes = [...new Set(ports.map((p: any) => p.process))] as string[];

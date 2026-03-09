@@ -59,4 +59,13 @@ export const api = {
   worktrees: () => fetcher<any>("/worktrees"),
   envFiles: () => fetcher<any>("/env-files"),
   lintClaude: () => fetcher<any>("/lint-claude"),
+  chatStatus: () => fetcher<any>("/chat/status"),
+  chatSetKey: (key: string) => putJson<any>("/chat/key", { key }),
+  chatStream: (messages: Array<{ role: string; content: string }>, model?: string) => {
+    return fetch(`${BASE}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages, model }),
+    });
+  },
 };

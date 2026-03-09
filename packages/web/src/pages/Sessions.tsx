@@ -5,12 +5,13 @@ import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { Clock, Cpu, Wrench, DollarSign, ChevronDown, ChevronRight, User, Bot } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Sessions() {
   const { data, isLoading } = useQuery({ queryKey: ["sessions"], queryFn: api.sessions });
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={4} />;
 
   const sessions = data?.sessions || [];
   const totalCost = sessions.reduce((sum: number, s: any) => sum + (s.costUsd || 0), 0);

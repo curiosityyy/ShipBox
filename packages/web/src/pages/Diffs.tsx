@@ -5,13 +5,14 @@ import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { GitCompare, Bot, ChevronRight, ChevronDown, Play } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Diffs() {
   const { data, isLoading } = useQuery({ queryKey: ["diffs"], queryFn: api.diffs });
   const { data: sessionsData } = useQuery({ queryKey: ["sessions"], queryFn: api.sessions });
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={2} />;
   if (!data) return null;
 
   const diffs = data.diffs || [];

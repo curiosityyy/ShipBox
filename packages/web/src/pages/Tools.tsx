@@ -4,13 +4,14 @@ import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { BarChart3, Repeat, FileEdit, Terminal, Flame } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const barColors = ["#60a5fa", "#fbbf24", "#34d399", "#818cf8", "#fb923c", "#f87171", "#38bdf8", "#a78bfa"];
 
 export default function Tools() {
   const { data, isLoading } = useQuery({ queryKey: ["tools"], queryFn: api.tools });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
   if (!data) return null;
 
   const toolEntries = Object.entries(data.tools || {}).sort(([, a], [, b]) => (b as number) - (a as number));

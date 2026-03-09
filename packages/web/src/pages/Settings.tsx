@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
 import { useState } from "react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -12,7 +13,7 @@ export default function SettingsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={0} />;
 
   const scanDirs: string[] = data?.scan_directories || [];
 

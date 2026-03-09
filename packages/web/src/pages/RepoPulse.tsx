@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { Activity, GitBranch } from "lucide-react";
 import { clsx } from "clsx";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const statusDot: Record<string, string> = {
   active: "bg-[#34d399] shadow-[0_0_6px_rgba(52,211,153,0.4)]",
@@ -33,7 +34,7 @@ function timeAgo(ts: number): string {
 export default function RepoPulse() {
   const { data, isLoading } = useQuery({ queryKey: ["work-graph"], queryFn: api.workGraph });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={0} />;
   if (!data) return null;
 
   const repos = [...(data.repos || [])].sort((a: any, b: any) => {

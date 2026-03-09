@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
 import { EmptyState } from "../components/EmptyState";
 import { Key } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -13,7 +14,7 @@ function formatSize(bytes: number): string {
 export default function Env() {
   const { data, isLoading } = useQuery({ queryKey: ["envFiles"], queryFn: api.envFiles });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={0} />;
 
   const files = data?.files || [];
 

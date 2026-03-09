@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { DollarSign, TrendingUp, Calendar, Cpu } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const MODEL_COLORS: Record<string, string> = {
   "claude-opus-4-6": "#c084fc",
@@ -32,7 +33,7 @@ function calculateCost(model: string, tokens: { input: number; output: number; c
 export default function Costs() {
   const { data, isLoading } = useQuery({ queryKey: ["costs"], queryFn: api.costs });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={4} />;
 
   const costData = data as any;
   if (!costData?.days || Object.keys(costData.days).length === 0) {

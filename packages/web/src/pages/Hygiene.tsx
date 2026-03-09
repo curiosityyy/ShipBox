@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { ShieldCheck } from "lucide-react";
 import { clsx } from "clsx";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const severityColors: Record<string, { bg: string; text: string; dot: string }> = {
   critical: {
@@ -27,7 +28,7 @@ const severityColors: Record<string, { bg: string; text: string; dot: string }> 
 export default function Hygiene() {
   const { data, isLoading } = useQuery({ queryKey: ["hygiene"], queryFn: api.hygiene });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={3} />;
 
   const issues = data?.issues || [];
   const critical = issues.filter((i: any) => i.severity === "critical").length;

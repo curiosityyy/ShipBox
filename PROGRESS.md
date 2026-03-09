@@ -253,3 +253,32 @@ Compared ShipBox against Readout screenshots and made targeted improvements.
 - [x] Clickable cards with chevron arrows (Activity, Cost by Model, Recent Sessions)
 - [x] Hygiene warning banner (yellow)
 - [x] Quick-access cards (Skills, Agents, Memory, Repos)
+
+---
+
+## Frontend Optimization (2026-03-06)
+
+### Skeleton Loading States
+- [x] Created reusable `PageSkeleton` component (`components/PageSkeleton.tsx`)
+- [x] Replaced all "Loading..." text across 25 pages with shimmer skeleton loading
+- [x] Skeleton adapts card count per page (0-4 stat cards)
+- [x] Transcripts search shows 3 skeleton cards while loading
+
+### Sidebar Active Indicator
+- [x] Added blue left accent border (`before:` pseudo-element) on active nav items
+- [x] Matches Readout's active state styling (blue left bar + dark background)
+- [x] Applied to both nav items and Settings link
+
+### Overview Page - "When You Work" Heatmap
+- [x] Added 7x24 heatmap grid (Mon-Sun x 24 hours) matching Readout layout
+- [x] Restructured to 2x2 grid: Activity | When You Work / Cost by Model | Recent Sessions
+- [x] Heatmap populated from recent session timestamps with green intensity scaling
+- [x] Hour labels (12a, 6a, 12p, 6p) along bottom axis
+
+### Page Transitions
+- [x] Added `key={location.pathname}` to DashboardLayout for route-change animations
+- [x] `animate-fade-in` now includes subtle translateY(4px) for smoother feel
+- [x] Faster easing (0.3s cubic-bezier) for snappier transitions
+
+### Components
+- [x] New: `PageSkeleton.tsx` - reusable loading skeleton with configurable stat cards

@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { EmptyState } from "../components/EmptyState";
 import { BarChart3 } from "lucide-react";
 import { clsx } from "clsx";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const statusDot: Record<string, string> = {
   active: "bg-[#34d399] shadow-[0_0_6px_rgba(52,211,153,0.4)]",
@@ -21,7 +22,7 @@ const statusText: Record<string, string> = {
 export default function WorkGraph() {
   const { data, isLoading } = useQuery({ queryKey: ["work-graph"], queryFn: api.workGraph });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={4} />;
   if (!data) return null;
 
   const repos = data.repos || [];

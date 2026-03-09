@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
 import { EmptyState } from "../components/EmptyState";
 import { FileText, Search, User, Bot, ChevronDown, ChevronRight } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 const TIME_FILTERS = [
   { label: "All Time", value: "" },
@@ -75,7 +76,14 @@ export default function Transcripts() {
       </div>
 
       {isLoading ? (
-        <div className="text-[#64748b] text-sm">Searching...</div>
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="glass-card rounded-xl px-5 py-4 space-y-2">
+              <div className="skeleton h-4 w-3/4" />
+              <div className="skeleton h-3 w-1/3" />
+            </div>
+          ))}
+        </div>
       ) : transcripts.length === 0 ? (
         <EmptyState
           icon={<FileText size={48} />}

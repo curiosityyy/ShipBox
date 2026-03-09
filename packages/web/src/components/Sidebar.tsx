@@ -91,9 +91,9 @@ export function Sidebar() {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   clsx(
-                    "flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] font-semibold transition-all duration-150",
+                    "flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] font-semibold transition-all duration-150 relative",
                     isActive
-                      ? "bg-[#1e2433] text-[#e2e8f0]"
+                      ? "bg-[#1e2433] text-[#e2e8f0] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:rounded-r-full before:bg-[#60a5fa]"
                       : "text-[#8b949e] hover:text-[#e2e8f0] hover:bg-[#151a25]"
                   )
                 }
@@ -113,9 +113,9 @@ export function Sidebar() {
           to="/settings"
           className={({ isActive }) =>
             clsx(
-              "flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] font-semibold transition-all duration-150",
+              "flex items-center gap-2.5 px-3 py-[7px] rounded-md text-[13px] font-semibold transition-all duration-150 relative",
               isActive
-                ? "bg-[#1e2433] text-[#e2e8f0]"
+                ? "bg-[#1e2433] text-[#e2e8f0] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-4 before:rounded-r-full before:bg-[#60a5fa]"
                 : "text-[#8b949e] hover:text-[#e2e8f0] hover:bg-[#151a25]"
             )
           }

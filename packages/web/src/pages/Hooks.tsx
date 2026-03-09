@@ -3,11 +3,12 @@ import { api } from "../lib/api";
 import { PageHeader } from "../components/PageHeader";
 import { EmptyState } from "../components/EmptyState";
 import { Link2 } from "lucide-react";
+import { PageSkeleton } from "../components/PageSkeleton";
 
 export default function Hooks() {
   const { data, isLoading } = useQuery({ queryKey: ["hooks"], queryFn: api.hooks });
 
-  if (isLoading) return <div className="text-[#64748b]">Loading...</div>;
+  if (isLoading) return <PageSkeleton cards={0} />;
 
   const hooks = data?.hooks || {};
   const hookEntries = Object.entries(hooks);

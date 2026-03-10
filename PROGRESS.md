@@ -438,3 +438,16 @@ Compared ShipBox against Readout screenshots and made targeted improvements.
 
 ### API 客户端: `packages/web/src/lib/api.ts`
 - [x] 新增 `claudeBinary()`, `exportData()`
+
+---
+
+## Session 即时创建 (2026-03-10)
+
+修复：发送第一条消息时 session 立即出现在侧边栏，而非等响应完成。
+
+### 后端: `packages/server/src/routes/chat.ts`
+- [x] 收到 `system.init` 事件时立即 INSERT session 记录到 DB (title = 消息前60字符)
+- [x] `child.on("close")` 改为仅 UPDATE (cost, messageCount, updatedAt)
+
+### 前端: `packages/web/src/pages/Assistant.tsx`
+- [x] 收到 `system.init` 事件时立即调用 `refetchSessions()` 刷新侧边栏

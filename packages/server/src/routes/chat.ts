@@ -120,10 +120,36 @@ export async function chatRoutes(app: FastifyInstance) {
           const event = JSON.parse(line);
           raw.write(`data: ${JSON.stringify(event)}\n\n`);
 
-          // Capture session info for DB upsert
+          // Capture session info — immediately create DB record on init
           if (event.type === "system" && event.subtype === "init" && event.session_id) {
             capturedSessionId = event.session_id;
             if (event.model) capturedModel = event.model;
+            // Create session record immediately so it shows in sidebar
+            try {
+              const existing = db
+                .select()
+                .from(assistantSessions)
+                .where(eq(assistantSessions.id, event.session_id))
+                .get();
+              if (!existing) {
+                const now = Date.now();
+                db.insert(assistantSessions)
+                  .values({
+                    id: event.session_id,
+                    title: message.slice(0, 60).replace(/\n/g, " "),
+                    model: capturedModel,
+                    cwd: workDir,
+                    createdAt: now,
+                    updatedAt: now,
+                    lastMessage: message.slice(0, 200),
+                    messageCount: 1,
+                    totalCostUsd: 0,
+                  })
+                  .run();
+              }
+            } catch (err: any) {
+              app.log.error({ err: err.message }, "Failed to create session on init");
+            }
           }
           if (event.type === "result" && event.total_cost_usd) {
             totalCost = event.total_cost_usd;
@@ -152,10 +178,9 @@ export async function chatRoutes(app: FastifyInstance) {
       raw.write(`data: ${JSON.stringify({ type: "close", code, signal })}\n\n`);
       raw.end();
 
-      // Upsert session metadata into DB
+      // Update session metadata on completion (record was created on init)
       if (capturedSessionId && code === 0) {
         const now = Date.now();
-        const title = message.slice(0, 60).replace(/\n/g, " ");
         try {
           const existing = db
             .select()
@@ -173,23 +198,9 @@ export async function chatRoutes(app: FastifyInstance) {
               })
               .where(eq(assistantSessions.id, capturedSessionId))
               .run();
-          } else {
-            db.insert(assistantSessions)
-              .values({
-                id: capturedSessionId,
-                title,
-                model: capturedModel,
-                cwd: workDir,
-                createdAt: now,
-                updatedAt: now,
-                lastMessage: message.slice(0, 200),
-                messageCount: 1,
-                totalCostUsd: totalCost,
-              })
-              .run();
           }
         } catch (err: any) {
-          app.log.error({ err: err.message }, "Failed to upsert assistant session");
+          app.log.error({ err: err.message }, "Failed to update assistant session");
         }
       }
     });

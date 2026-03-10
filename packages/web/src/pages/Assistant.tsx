@@ -285,6 +285,8 @@ export default function Assistant() {
               });
               setActiveSessionId(newId);
               resultModel = event.model || "";
+              // Session was created in DB on init — refresh sidebar immediately
+              refetchSessions();
             } else if (event.type === "assistant") {
               const msg = event.message;
               if (msg?.content) {

@@ -165,6 +165,25 @@ export default function Assistant() {
     }
   };
 
+  // Load messages for a session (from cache or API)
+  const loadSessionMessages = useCallback(async (id: string) => {
+    const cached = messagesMapRef.current.get(id);
+    if (cached && cached.length > 0) {
+      setMessages(cached);
+      return;
+    }
+    try {
+      const data = await api.assistantSessionMessages(id);
+      const msgs: ChatMessage[] = data.messages || [];
+      if (msgs.length > 0) {
+        messagesMapRef.current.set(id, msgs);
+      }
+      setMessages(msgs);
+    } catch {
+      setMessages([]);
+    }
+  }, []);
+
   // Switch to a session
   const switchSession = (id: string | null) => {
     if (isStreaming) return;
@@ -174,12 +193,25 @@ export default function Assistant() {
     }
     setActiveSessionId(id);
     setSession((s) => ({ ...s, id }));
-    setMessages(id ? (messagesMapRef.current.get(id) || []) : []);
     setStreamingText("");
     setStreamingTools([]);
     setStreamingThinking([]);
     setTurnCount(0);
+
+    if (id) {
+      loadSessionMessages(id);
+    } else {
+      setMessages([]);
+    }
   };
+
+  // Load messages on initial mount for persisted activeSessionId
+  useEffect(() => {
+    if (activeSessionId && messages.length === 0) {
+      loadSessionMessages(activeSessionId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // New conversation
   const newConversation = () => {

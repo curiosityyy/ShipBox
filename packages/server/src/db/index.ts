@@ -72,6 +72,18 @@ sqlite.exec(`
     message_count INTEGER DEFAULT 0,
     total_cost_usd REAL DEFAULT 0
   );
+  CREATE TABLE IF NOT EXISTS assistant_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL DEFAULT '',
+    thinking TEXT,
+    tool_uses TEXT,
+    model TEXT,
+    cost_usd REAL,
+    duration_ms REAL,
+    created_at INTEGER NOT NULL
+  );
 `);
 
 // Initialize default settings

@@ -451,3 +451,29 @@ Compared ShipBox against Readout screenshots and made targeted improvements.
 
 ### 前端: `packages/web/src/pages/Assistant.tsx`
 - [x] 收到 `system.init` 事件时立即调用 `refetchSessions()` 刷新侧边栏
+
+---
+
+## 消息持久化 (Message Persistence) (2026-03-10)
+
+修复：切换 session 或刷新页面后聊天记录丢失。消息现在持久化到数据库。
+
+### 数据库
+- [x] 新增 `assistant_messages` 表 (id, session_id, role, content, thinking, tool_uses, model, cost_usd, duration_ms, created_at)
+  - Schema: `packages/server/src/db/schema.ts`
+  - DDL: `packages/server/src/db/index.ts`
+  - thinking/toolUses 存为 JSON text
+
+### 后端: `packages/server/src/routes/chat.ts`
+- [x] `GET /api/assistant/sessions/:id/messages` — 获取 session 的所有消息，按 id 排序
+- [x] 服务端累积 assistant 响应 (text, tools, thinking) 并在 `child.on("close")` 时写入 DB
+- [x] 用户消息在收到 `system.init` 后立即保存
+- [x] 删除 session 时同步删除关联消息
+
+### 前端: `packages/web/src/pages/Assistant.tsx`
+- [x] `loadSessionMessages()` — 先查内存缓存，未命中则从 API 加载
+- [x] `switchSession()` 改为调用 `loadSessionMessages()` 加载历史
+- [x] 页面挂载时自动加载 localStorage 中持久化的 activeSessionId 的消息
+
+### API 客户端
+- [x] 新增 `assistantSessionMessages(id)`

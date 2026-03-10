@@ -85,6 +85,7 @@ export const api = {
   claudeBinary: () => fetcher<any>("/settings/claude-binary"),
   exportData: () => fetcher<any>("/settings/export"),
   assistantSessions: () => fetcher<any>("/assistant/sessions"),
+  assistantSessionMessages: (id: string) => fetcher<any>(`/assistant/sessions/${id}/messages`),
   renameAssistantSession: (id: string, title: string) => patchJson<any>(`/assistant/sessions/${id}`, { title }),
   deleteAssistantSession: (id: string) => deleteJson<any>(`/assistant/sessions/${id}`),
 };

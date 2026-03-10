@@ -62,3 +62,16 @@ export const assistantSessions = sqliteTable("assistant_sessions", {
   messageCount: integer("message_count").default(0),
   totalCostUsd: real("total_cost_usd").default(0),
 });
+
+export const assistantMessages = sqliteTable("assistant_messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  sessionId: text("session_id").notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull().default(""),
+  thinking: text("thinking"),
+  toolUses: text("tool_uses"),
+  model: text("model"),
+  costUsd: real("cost_usd"),
+  durationMs: real("duration_ms"),
+  createdAt: integer("created_at").notNull(),
+});
